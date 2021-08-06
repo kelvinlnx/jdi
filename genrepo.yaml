@@ -1,0 +1,173 @@
+---
+# Prerequisites:
+#   - variable file must exists in proj generated temporary dir, {{ gen_dir }}
+#
+# Syntax:
+#   ansible-playbook genrepo.yaml [--tags {[cleanup],[extract_installer]}]
+#
+# Extras:
+#   Cleanup temporary files:
+#     ansible-playbook genrepo.yaml --tags cleanup
+#   Extract openshift-installer:
+#     ansible-playbook genrepo.yaml --tags extract_installer
+#
+
+- name: Generate Repository Container
+  hosts: "{{ REGISTRY_HOST }}"
+  become: true
+  vars:
+    tmp_host: "{{ host_list | selectattr('type', 'match', REGISTRY_HOST) | first }}"
+    tmp_cert: "{{ cert_list | selectattr('type', 'match', REGISTRY_CERT) | first }}"
+    cleanmeup: false          # remove temporary downloaded files.
+  vars_files:
+    - vars/all-vars
+  tasks:
+    - name: "PREREQ: Install packages - python3-bcrypt, python3-passlib}"
+      apt:
+        name:
+          - python3-bcrypt
+          - python3-passlib
+        state: latest
+
+    - name: "PREREQ: Create registry directories"
+      file:
+        path: "{{ item }}"
+        state: directory
+        recurse: true
+      loop:
+        - "{{ tmp_host.registry.auth }}"
+        - "{{ tmp_host.registry.certs }}"
+        - "{{ tmp_host.registry.data }}"
+
+    - name: "PREREQ: Deploy certificates"
+      copy:
+        src: "{{ tmp_cert.files | json_query(item.name) }}"
+        dest: "{{ tmp_host.registry.certs }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - name: key
+          mode: "0600"
+        - name: crt
+          mode: "0644"
+
+    - name: "PREREQ: Copy CA Certificate"
+      copy:
+        src: "{{ (cert_list | selectattr('type', 'match', CA_CERT) | first).files.crt }}"
+        dest: /usr/local/share/ca-certificates/
+
+    - name: "PREREQ: Update ca trusts"
+      command: update-ca-certificates
+
+    - name: "PREREQ: Generate credentials"
+      htpasswd:
+        name: "{{ tmp_host.registry.username }}"
+        password: "{{ tmp_host.registry.password }}"
+        crypt_scheme: bcrypt
+        path: "{{ tmp_host.registry.auth }}/htpasswd"
+
+    - name: "SETUP: Create and run latest docker registry container"
+      containers.podman.podman_container:
+        name: "{{ tmp_host.name }}"
+        image: docker.io/library/registry:latest
+        state: started
+        force_restart: yes
+        ports: 5000:5000/tcp
+        volume:
+          - "{{ tmp_host.registry.data }}:/var/lib/registry"
+          - "{{ tmp_host.registry.auth }}:/auth"
+          - "{{ tmp_host.registry.certs }}:/certs"
+        env:
+          REGISTRY_AUTH: htpasswd
+          REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+          REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+          REGISTRY_HTTP_TLS_CERTIFICATE: /certs/{{ tmp_cert.files.crt | basename }}
+          REGISTRY_HTTP_TLS_KEY: /certs/{{ tmp_cert.files.key | basename }}
+          REGISTRY_HTTP_SECRET: "{{ tmp_host.registry.secret }}"
+
+    #    publish[ed[_ports]]|ports: [<IP>:[<hostPort>]:]<containerPort>[/tcp|/udp]
+    #    hostname:
+    #    volume: </host-d>[:</cont-d>]
+    #    device: "/dev/sda:/dev/xvda:rwm"
+    #    detach: no|Yes
+    #    force_restart: No|yes
+    #    oom_kill_disable: No|yes
+    #    privileged: No|yes
+
+    - name: "SETUP: check for client tools"
+      stat:
+        path: /usr/local/bin/oc
+      register: oc_result
+
+    - block:
+        - name: "SETUP: check if oc.tar.gz exists"
+          stat:
+            path: /tmp/oc.tar.gz
+          register: stat_result
+
+        - name: "SETUP: Download oc client tools"
+          get_url:
+            url: "{{ OC_CLIENT_TOOLS }}"
+            dest: /tmp/oc.tar.gz
+          when: not stat_result.stat.exists
+
+        - name: "SETUP: Extract oc client tools"
+          unarchive:
+            src: /tmp/oc.tar.gz
+            dest: /usr/local/bin/
+            remote_src: yes
+      when: not oc_result.stat.exists
+
+    - name: "SETUP: copy pull-secret"
+      copy:
+        src: "{{ my_pull_secret }}"
+        dest: /tmp/pull-secret
+
+    - name: "SETUP: Inject repo credentials into pull-secret"
+      replace:
+        path: /tmp/pull-secret
+        replace: '\1"{{ tmp_cert.fqdn }}:5000":{"auth":"{{ (tmp_host.registry.username + ":" + tmp_host.registry.password)|b64encode }}","email":"{{ tmp_host.registry.email }}"},\2'
+        regexp: '^({"auths":{)(.*)'
+
+    - name: "INFO: Wait for response from https://quay.io/repository/openshift-release-dev/ocp-release?tab=tags"
+      uri:
+        url: https://quay.io/repository/openshift-release-dev/ocp-release?tab=tags
+      register: uri_result
+      until: uri_result.status == 200
+      retries: 720        # 1 hr
+      delay: 5
+
+    - name: "INFO: To monitor repository mirroring"
+      debug:
+        msg: "ssh to {{ inventory_hostname }} and run: tail -f /tmp/mirror_result"
+
+    - name: "SETUP: Start repository mirroring"
+      shell: |
+        oc adm release mirror -a {{LOCAL_SECRET_JSON}} \
+        --from=quay.io/{{PRODUCT_REPO}}/{{RELEASE_NAME}}:{{OCP_RELEASE}}-{{ARCHITECTURE}} \
+        --to={{LOCAL_REGISTRY}}/{{LOCAL_REPOSITORY}} \
+        --to-release-image={{LOCAL_REGISTRY}}/{{LOCAL_REPOSITORY}}:{{OCP_RELEASE}}-{{ARCHITECTURE}} 2> /tmp/oc_msg | tee /tmp/mirror_result
+
+        sed -nE '/^imageContentSources:$/,/^$/s/(.*)/\1/p' /tmp/mirror_result > /tmp/imageContentSources
+      register: sh_result
+
+
+    - name: "SETUP: Extract openshift-install"
+      shell: oc adm release extract -a {{LOCAL_SECRET_JSON}} --command=openshift-install "{{LOCAL_REGISTRY}}/{{LOCAL_REPOSITORY}}:{{OCP_RELEASE}}-{{ARCHITECTURE}}"
+      register: sh_result
+      tags:
+        - extract_installer
+
+    - name: "CLEANUP: remove the temporary file"
+      file:
+        path: "{{ item }}"
+        state: absent
+      when: cleanmeup
+      loop:
+        - /tmp/oc_msg
+        - /tmp/oc.tar.gz
+        - /tmp/mirror_result
+        - /tmp/imageContentSources
+        - /tmp/pull-secret
+      tags:
+        - cleanup
+...

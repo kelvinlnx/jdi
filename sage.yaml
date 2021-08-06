@@ -1,0 +1,306 @@
+---
+#
+# A simple automated ubuntu 20.04 vm install
+#
+# Syntax:
+#   ansible-playbook sage.yaml
+#
+# Author:
+#   Kelvin Lai
+#
+# Prereq:
+#   - ansible
+#   - ubuntu live server iso
+#   - host must have internet access (for podman install in vm)
+#
+# Note:
+#   - edit the variable file all-vars in vars_files and cloud-config(line 86)
+#
+- name: Install repo server using virt-install
+  hosts: localhost
+  become: false
+  vars_files:
+    - vars/all-vars
+  vars:
+    myvm: "{{ host_list | selectattr('type', 'match', REGISTRY_HOST) | first }}"
+    kelvin_pc: false
+
+  tasks:
+    # Task only needed if using seed.iso
+    # - name: install the cloud-image-utils package
+    #   apt:
+    #     name: cloud-image-utils
+    #     state: latest
+    #     update_cache: yes
+    #   become: true
+
+    - name: "INIT: Create temp directory - {{ GEN_DIR }}/cidata"
+      file:
+        path: "{{ GEN_DIR }}/cidata"
+        state: directory
+        recurse: yes
+
+    - name: "INIT: Generate Network Info"
+      shell: |
+        TMP_IP=`virsh net-dumpxml default  | grep -oE "ip address='([[:digit:]]{1,3}\.){3}" | cut -f2 -d\'`{{ myvm.host_ip }}
+
+        cat > {{ GEN_DIR }}/tmp_var << EOF
+        registry_ip: $TMP_IP
+        registry_mac: `echo $TMP_IP|md5sum|sed 's/^\(..\)\(..\)\(..\).*$/52:54:00:\1:\2:\3/'`
+        registry_gateway: `virsh net-dumpxml default | grep -oE "ip address='([[:digit:]\.])*" | cut -f2 -d\'`
+        EOF
+
+#        sed -ie 's/(    mac: ).*( *# MARKER REGIP)/\1$TMP_IP\2/'
+
+    
+    - name: "INIT: Import generated var file - {{ GEN_DIR }}/tmp_var"
+      include_vars:
+        file: "{{ GEN_DIR }}/tmp_var"
+
+    - name: "NET: reserve ip for myvm"
+      virt_net:
+        name: default
+        command: modify
+        xml: "<host mac='{{ registry_mac }}' name='{{ myvm.name }}' ip='{{ registry_ip }}'/>"
+      ignore_errors: true
+
+    - name: "NET: create dnsmasq entry for {{ myvm.name }}"
+      lineinfile:
+        path: /usr/local/etc/mydomains/example.com
+        line: "{{ registry_ip }}\t{{ myvm.name }}"
+        state: present
+      become: true
+      when: kelvin_pc
+      
+    - name: "VM: create autoinstall file - meta-data"
+      file:
+        path: "{{ GEN_DIR }}/cidata/meta-data"
+        state: touch
+        modification_time: preserve
+        access_time: preserve
+
+    # apt repo info from https://podman.io/getting-started/installation
+    - name: "VM: create autoinstall file - user-data"
+      copy:
+        content: |
+          #cloud-config
+          autoinstall:
+            version: 1
+            identity:
+              hostname: {{ myvm.fqdn }}
+              username: {{ myvm.username }}
+              password: "{{ myvm.password | password_hash('sha512') }}"
+            locale: en_US
+            keyboard:
+              layout: us
+              toggle: null
+              variant: ''
+            network:
+              network:
+                version: 2
+                ethernets:
+                  enp1s0:
+                    # dhcp4: yes
+                    addresses: [ {{ registry_ip }}/24 ]
+                    gateway4: {{ registry_gateway }}
+                    nameservers:
+                      search: [ example.com ]
+                      addresses: [ {{ registry_gateway }} ]
+            apt:
+              preserve_sources_list: false
+              primary:
+                - arches: [default]
+                  uri: http://registry.example.com/mirror/ubuntu
+              sources:
+                devel:kubic:libcontainers:stable:
+                  source: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /"
+                  key: |
+                    -----BEGIN PGP PUBLIC KEY BLOCK-----
+                    Version: GnuPG v1.4.5 (GNU/Linux)
+
+                    mQENBFtkV0cBCADStSTCG5qgYtzmWfymHZqxxhfwfS6fdHJcbGUeXsI5dxjeCWhs
+                    XarZm6rWZOd5WfSmpXhbKOyM6Ll+6bpSl5ICHLa6fcpizYWEPa8fpg9EGl0cF12G
+                    GgVLnnOZ6NIbsoW0LHt2YN0jn8xKVwyPp7KLHB2paZh+KuURERG406GXY/DgCxUx
+                    Ffgdelym/gfmt3DSq6GAQRRGHyucMvPYm53r+jVcKsf2Bp6E1XAfqBrD5r0maaCU
+                    Wvd7bi0B2Q0hIX0rfDCBpl4rFqvyaMPgn+Bkl6IW37zCkWIXqf1E5eDm/XzP881s
+                    +yAvi+JfDwt7AE+Hd2dSf273o3WUdYJGRwyZABEBAAG0OGRldmVsOmt1YmljIE9C
+                    UyBQcm9qZWN0IDxkZXZlbDprdWJpY0BidWlsZC5vcGVuc3VzZS5vcmc+iQE+BBMB
+                    CAAoBQJfcJJOAhsDBQkIKusHBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRBN
+                    ZDkDdQYKpB0xCACmtCT6ruPiQa4l0DEptZ+u3NNbZfSVGH4fE4hyTjLbzrCxqcoh
+                    xJvDKxspuJ85wWFWMtl57+lFFE1KP0AX2XTT+/v2vN1PIfwgOSw3yp2sgWuIXFAi
+                    89YSjSh8G0SGAH90A9YFMnTbllzGoGURjSX03iasW3A408ljbDehA6rpS3t3FD7P
+                    PnUF6204orYu00Qvc54an/xVJzxupb69MKW5EeK7x8MJnIToT8hIdOdGVD6axsis
+                    x+1U71oMK1gBke7p4QPUdhJFpSUd6kT8bcO+7rYouoljFNYkUfwnqtUn7525fkfg
+                    uDqqXvOJMpJ/sK1ajHOeehp5T4Q45L/qUCb3iEYEExECAAYFAltkV0cACgkQOzAR
+                    t2udZSOoswCdF44NTN09DwhPFbNYhEMb9juP5ykAn0bcELvuKmgDwEwZMrPQkG8t
+                    Pu9n
+                    =42uC
+                    -----END PGP PUBLIC KEY BLOCK-----
+
+            ssh:
+              allow-pw: true
+              install-server: true
+              authorized-keys:
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDHD9KVM3wq0qtTrXRPVvw49RDikRy1ELyomzwbLELTFNPURLKtK/NRTSOA9SOt60nlVcHXvnYHE/g+Gx6eZoUD3vu+AccYgJG9VHZhRLnTJS6r5wZ9Jp5fAAbT+MUJ67jXs+fV68mudeRzY8zU7eM/AKrMZOi04el9NQxIrAp0sR4zqLumROGv5tdK50iTrCme4LhLOFsTNwnvr0LASo4tDlWmzCJRLybPVjKcHXQgX6OQt+RUVnjbE84FWGiaYMi53l3Kh9fFsGWe/vy2iSzf7zvRgRCSDxxPB1k81WzQT2f+Hknkx43SMdVywrA+aVk5WVy34wihnlJ2x0apTDNIXUjaReTGaAFD1VPx8rj8EUz1bDfEUUBjmoRgX2TyBf2UAdXwQneNnM6heXiwhWaeQJ92NDWUBg8Bbs/H7l7T9qjmb5ivu/ZRAVRUtz9jkYJXhthUMlSEAYWTW1IxjbTZfZMJjdYbddEOY2YXKybfsJX2QEzXsFPraoq4vPpy5Ss= example.com
+            storage:
+              # layout:
+              #   name: direct
+              #   match:
+              #     path: /dev/vda
+              config:
+                - id: disk-vda
+                  path: /dev/vda
+                  ptable: gpt
+                  type: disk
+                  grub_device: true
+                - device: disk-vda
+                  flag: bios_grub
+                  id: partition-vda1
+                  number: 1
+                  size: 1048576
+                  type: partition
+                - device: disk-vda
+                  flag: linux
+                  id: partition-vda2
+                  number: 2
+                  size: -1
+                  type: partition
+                - fstype: ext4
+                  id: format-partition-vda2
+                  type: format
+                  volume: partition-vda2
+                - id: format-partition-vda2-mount
+                  device: format-partition-vda2
+                  type: mount
+                  path: /
+            packages:
+              - apache2
+              - podman
+            user-data:
+              timezone: Asia/Kuala_Lumpur
+              disable_root: false
+              ssh_authorized_keys:
+                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDHD9KVM3wq0qtTrXRPVvw49RDikRy1ELyomzwbLELTFNPURLKtK/NRTSOA9SOt60nlVcHXvnYHE/g+Gx6eZoUD3vu+AccYgJG9VHZhRLnTJS6r5wZ9Jp5fAAbT+MUJ67jXs+fV68mudeRzY8zU7eM/AKrMZOi04el9NQxIrAp0sR4zqLumROGv5tdK50iTrCme4LhLOFsTNwnvr0LASo4tDlWmzCJRLybPVjKcHXQgX6OQt+RUVnjbE84FWGiaYMi53l3Kh9fFsGWe/vy2iSzf7zvRgRCSDxxPB1k81WzQT2f+Hknkx43SMdVywrA+aVk5WVy34wihnlJ2x0apTDNIXUjaReTGaAFD1VPx8rj8EUz1bDfEUUBjmoRgX2TyBf2UAdXwQneNnM6heXiwhWaeQJ92NDWUBg8Bbs/H7l7T9qjmb5ivu/ZRAVRUtz9jkYJXhthUMlSEAYWTW1IxjbTZfZMJjdYbddEOY2YXKybfsJX2QEzXsFPraoq4vPpy5Ss= example.com
+              package_update: true
+              package_upgrade: true
+              power_state:
+                mode: poweroff
+              runcmd:
+                - echo testing > /etc/great
+            late-commands:
+              - "echo '{{ myvm.username }} ALL=(ALL) NOPASSWD: ALL' > /target/etc/sudoers.d/{{ myvm.username }}"
+#              - ". /etc/os-release; echo version is $VERSION_ID gotit > /target/etc/hahaha" 
+        dest: "{{ GEN_DIR }}/cidata/user-data"
+
+    # Only needed if using kvm instead of virt-install
+    # - name: "VM: copy vmlinuz and initrd"
+    #   iso_extract:
+    #     image: "{{ os_iso }}"
+    #     dest: "{{ GEN_DIR }}"
+    #     files:
+    #       - casper/vmlinuz
+    #       - casper/initrd
+    #   become: true
+
+    # - name: "VM: create seed.iso for data source"
+    #   shell: |
+    #     cd {{ GEN_DIR }}/cidata
+    #     cloud-localds ../seed.iso user-data meta-data
+
+    - name: "VM: Create vm disk - {{ myvm.disk.path }}"
+      command: qemu-img create -f qcow2 {{ myvm.disk.path }} {{ myvm.disk.size }}
+      become: true
+   
+    # start webserver on port {{ myvm.registry.port }} serving user-data for 2 minutes
+    - name: "WEBSERVER: start temporary webserver at port {{ myvm.registry.port }}"
+      command:
+        cmd: python3 -m http.server {{ myvm.registry.port }}
+        chdir: "{{ GEN_DIR }}/cidata"
+      async: 120
+      poll: 0
+      register: cmd_result
+
+    - name: "VM: collect libvirt network facts"
+      virt_net:
+        command: facts
+
+    - name: "FIREWALL: enable incoming connection from bridge to port {{ myvm.registry.port }}"
+      ufw:
+        rule: allow
+        direction: in
+        from_ip: "{{ registry_ip | ipsubnet(24) }}"
+        to_ip: "{{ registry_gateway }}"
+        to_port: "'{{ myvm.registry.port }}'"
+        interface: "{{ansible_libvirt_networks.default.bridge }}"
+      become: true
+
+    #        -drive file={{ GEN_DIR }}/seed.iso,format=raw,cache=none,if=virtio \
+    - name: "VM: Finally installing vm - {{ myvm.name }}"
+      shell: |
+        virt-install --name {{ myvm.name }} \
+                     --memory {{ myvm.memory }} \
+                     --vcpus {{ myvm.vcpu }} \
+                     --disk {{ myvm.disk.path }} \
+                     --location {{ os_iso }},kernel=casper/vmlinuz,initrd=casper/initrd \
+                     --extra-args "autoinstall ds=nocloud-net;s=http://{{ registry_gateway }}:{{ myvm.registry.port }}/" \
+                     --network network=default,mac={{ registry_mac }} \
+                     --cpu host-passthrough \
+                     --arch x86_64 --hvm --virt-type kvm \
+                     --machine q35 \
+                     --os-variant ubuntu20.04
+      # --extra-args "autoinstall ds=nocloud-net;s=http://{{ myvm.gateway }}:{{ myvm.registry.port }}/" \
+      # kvm -no-reboot -m 1024 \
+      #     -drive file=/var/lib/libvirt/images/{{ myvm.disk }},format=qcow2,cache=none,if=virtio \
+      #     -cdrom {{ os_iso }} \
+      #     -kernel {{ GEN_DIR }}/vmlinuz \
+      #     -initrd {{ GEN_DIR }}/initrd \
+      #     -append "autoinstall ds=nocloud-net;s=http://_gateway:{{ myvm.registry.port }}/"
+      #become: true
+
+    # - async_status:
+    #     jid: "{{ cmd_result.ansible_job_id }}"
+    #     mode: cleanup
+    # async_status doesn't do proper cleanup job.
+
+    - name: "VM: Power up {{ myvm.name }}"
+      virt:
+        name: "{{ myvm.name }}"
+        state: running
+
+    - name: "CLEANUP: manual cleanup async files"
+      shell: rm -rf {{ cmd_result.results_file}}*
+
+    - name: "CLEANUP: remove firewall rule that was created earlier"
+      ufw:
+        delete: true
+        rule: allow
+        direction: in
+        from_ip: "{{ registry_ip | ipsubnet(24) }}"
+        to_ip: "{{ registry_gateway }}"
+        to_port: "'{{ myvm.registry.port }}'"
+        interface: "{{ansible_libvirt_networks.default.bridge }}"
+      become: true
+
+    # try using ip instead of name or else there will still be ecdsa warnings
+    - name: "CLEANUP: remove any previous {{ myvm.name }} entries from known_hosts"
+      known_hosts:
+        name: "{{ item }}"
+        path: "~/.ssh/known_hosts"
+        state: absent
+      loop:
+        - "{{ myvm.name }}"
+        - "{{ myvm.fqdn }}"
+        - "{{ registry_ip }}"
+
+    - name: "POST: create inventory directory"
+      file:
+        path: ./inventory
+        state: directory
+
+    - name: "POST: generate inventory file"
+      shell: |
+        cat > ./inventory/hosts << EOF
+        [{{ REGISTRY_HOST }}]
+        {{ myvm.name }}
+        EOF
+...

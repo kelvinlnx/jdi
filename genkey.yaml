@@ -1,0 +1,95 @@
+---
+#
+# This playbook helps generate CA root and all other certificates needed
+# uncomment the vars_prompt if you wish to dynamically provide the password
+# when running the playbook.
+#
+# Syntax:
+#   ansible-playbook genkey.yaml
+#
+- name: Generate Certificates
+  hosts: localhost
+  vars_files:
+    - vars/all-vars
+  vars:
+    ca: "{{ cert_list | selectattr( 'type', 'match', CA_CERT) | first }}"
+    clients: "{{ cert_list | rejectattr( 'type', 'match', CA_CERT) | list }}"
+  
+  # vars_prompt:
+  #   - name: ca_pass
+  #     prompt: "What is the passphrase?"
+  #     unsafe: yes
+  #     private: yes
+  tasks:
+    - name: create directory to store key
+      file:
+        path: "{{ CERT_DIR }}"
+        state: directory
+        mode: 0700
+
+    - block:
+        # Generate root private key used to sign certs (4096 bits)
+        - name: Generate root key
+          openssl_privatekey:
+            path: "{{ ca.files.key }}"
+            passphrase: "{{ ca.pass }}"
+            select_crypto_backend: cryptography
+            cipher: auto
+            backup: true
+
+        - name: check root cert
+          stat:
+            path: "{{ ca.files.crt }}"
+          register: stat_result
+
+        # Generate and Sign Root Cert
+        - name: Generate root cert
+          vars:
+            ca_subj:
+              "/C={{ ca.subj.country }}\
+              /ST={{ ca.subj.state }}\
+              /L={{ ca.subj.locality }}\
+              /O={{ ca.subj.org }}\
+              /OU={{ ca.subj.ou }}\
+              /CN={{ ca.subj.cn }}\
+              /emailAddress={{ ca.subj.emailAddress }}"
+          command: |
+            openssl req -x509 -new -sha256 -nodes \
+                   -key {{ ca.files.key }} -out {{ ca.files.crt }} \
+                   -days {{ ca.days }} \
+                   -subj "{{ ca_subj }}" \
+                   -extensions v3_ca \
+                   -passin pass:"{{ ca.pass }}"
+          when: not stat_result.stat.exists
+      when: generate_ca | bool
+
+    - block:
+        - name: Genereate Private Key for clients
+          openssl_privatekey:
+            path: "{{ item.files.key }}"
+          loop: "{{ clients }}"
+
+        - name: Generate Certificate Signing Requests for clients
+          openssl_csr:
+            path: "{{ item.files.csr }}"
+            privatekey_path: "{{ item.files.key }}"
+            country_name: "{{ item.subj.country }}"
+            state_or_province_name: "{{ item.subj.state }}"
+            locality_name: "{{ item.subj.locality }}"
+            organization_name: "{{ item.subj.org }}"
+            organizational_unit_name: "{{ item.subj.ou }}"
+            common_name: "{{ item.fqdn }}"
+#            email_address: ""
+            subject_alt_name: "DNS:{{ item.name }},DNS:{{ item.fqdn }}"
+          loop: "{{ clients }}"
+
+        # ownca_not_after default is +3650d (10 yrs)
+        - name: Sign CSR with CA key
+          openssl_certificate:
+            path: "{{ item.files.crt }}"
+            csr_path: "{{ item.files.csr }}"
+            ownca_path: "{{ ca.files.crt }}"
+            ownca_privatekey_path: "{{ ca.files.key }}"
+            ownca_privatekey_passphrase: "{{ ca.pass }}"
+            provider: ownca
+          loop: "{{ clients }}"
