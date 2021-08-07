@@ -71,6 +71,13 @@
         state: present
       become: true
       when: kelvin_pc
+
+    - name: "NET: configure local resolving /etc/hosts"
+      lineinfile:
+        line: "{{ registry_ip }} {{ myvm.fqdn }} {{ myvm.name }}"
+        dest: /etc/hosts
+      become: true
+      when: not kelvin_pc
       
     - name: "VM: create autoinstall file - meta-data"
       file:
