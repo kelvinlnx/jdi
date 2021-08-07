@@ -94,6 +94,7 @@ sudo -v
 
 echo -e "\n\e[1;34mINIT: Updating ansible.cfg based on command line options"
 echo -e "========================================================\e[0m"
+$ADHOC_CMD localhost -om ini_file -e '@./vars/all-vars' -a "path=./ansible.cfg section=defaults option=remote_user value={{registry_vm.username}}"
 if [ -z "$CALLBACK" ]; then
   $ADHOC_CMD localhost -om ini_file -a "path=./ansible.cfg section=defaults option=callback_whitelist state=absent"
 else
@@ -119,7 +120,7 @@ echo -e "=======================================================\e[0m"
 echo -e "\n\e[1;34mSTAGE 4: Create Registry and Mirror repository"
 echo -e "==============================================\e[0m"
 echo Waiting for VM to be reachable...
-$ADHOC_CMD localhost -m wait_for -a `grep registry_ip generated/tmp_var|cut -f2 -d' '`
+$ADHOC_CMD localhost -e '@./generated/tmp_var' -m wait_for -a "host={{ registry_ip }} port=22 delay=10"
 echo
 do_it genrepo.yaml
 

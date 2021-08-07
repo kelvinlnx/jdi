@@ -104,6 +104,14 @@
             path: /tmp/oc.tar.gz
           register: stat_result
 
+        - name: "SETUP: Wait for connectivity to {{ OC_CLIENT_TOOLS | dirname }}"
+          uri:
+            url: "{{ OC_CLIENT_TOOLS | dirname }}"
+          register: uri_result
+          until: uri_result.status == 200
+          retries: 720   # 1 hr
+          delay: 5
+
         - name: "SETUP: Download oc client tools"
           get_url:
             url: "{{ OC_CLIENT_TOOLS }}"

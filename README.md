@@ -8,6 +8,7 @@ This project assumes:
 	- Firewall on Host OS is enabled - ufw (playbook sage.yaml uses it)	  # to be verified, what happens if not enabled?
 	- ansible is installed
 	- cgroup-tools is installed (only if memory profile required)
+	- python3-lxml is installed
 
 This project uses:
 	- Host machines libvirt "default" network

@@ -21,6 +21,7 @@ registry_vm:
   fqdn: &reg_lname "{{ tmp_reg_sname }}.example.com"    # you may change .example.com for domain
   username: user                                        # user account on vm, make sure to update remote_user in ansible.cfg
   password: "password"                                  # password for the user
+  authorized_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDEPmLw/RI0/S7FQh8o+JXFGqh3bTX24tigDyvLg0zCcGDdWgjU7lGq+TlYUbJ3W6SFzxXUXdl1iSssEY2iw1YvwySdQgAXfBd9Hn/k/INcKEErz/A7A2z2EDP9MQHv952lAs/Uik3tA+iFyjt5C1zkeRw0r2w/BRR2vFA7CHZEd9LP/KeX1Q2OUhUIrlnfsgN5us5jB0OtKX4JR3Pf5qaBSnySsojBGbaawrWUr9wqJH2LtkoOvIj8De/jJS6LK8tBH6FV+DY3OueBqdxOtvjFHy5l1PnlWWnIFVi3qhsXIVr46CGntvpSeod6rrQhLfQ/b191/zVqSMFKAL05HTfcr4aIUOw8A4fCigypm4NmfbSq+Mhm9o19k0Dr6Zihh2za54RwZdQOoc1qQYkc19BoPFtuh7wreh4YV6m5Ir7yVt9ApoK+Xj7fYrtkk2y4jBYYm8NP41VLABY6auwTk8X5n8Y8n3RWd/IuiCETSWPivV5es3MleuMBm8AWwQ1X9f0= dops@testdesktop
   disk:
     path: /var/lib/libvirt/images/{{ tmp_reg_sname }}.qcow2
     size: 25G                                           # 4.6.31 repo uses approx 6GB
@@ -126,6 +127,7 @@ host_list:
     type: "{{ REGISTRY_HOST }}"
     username: "{{ registry_vm.username }}"
     password: "{{ registry_vm.password }}"
+    authorized_key: "{{ registry_vm.authorized_key }}"
     disk:
       path: "{{ registry_vm.disk.path }}"
       size: "{{ registry_vm.disk.size }}"

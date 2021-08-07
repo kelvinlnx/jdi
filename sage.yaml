@@ -147,8 +147,8 @@
             ssh:
               allow-pw: true
               install-server: true
-              authorized-keys:
-                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDHD9KVM3wq0qtTrXRPVvw49RDikRy1ELyomzwbLELTFNPURLKtK/NRTSOA9SOt60nlVcHXvnYHE/g+Gx6eZoUD3vu+AccYgJG9VHZhRLnTJS6r5wZ9Jp5fAAbT+MUJ67jXs+fV68mudeRzY8zU7eM/AKrMZOi04el9NQxIrAp0sR4zqLumROGv5tdK50iTrCme4LhLOFsTNwnvr0LASo4tDlWmzCJRLybPVjKcHXQgX6OQt+RUVnjbE84FWGiaYMi53l3Kh9fFsGWe/vy2iSzf7zvRgRCSDxxPB1k81WzQT2f+Hknkx43SMdVywrA+aVk5WVy34wihnlJ2x0apTDNIXUjaReTGaAFD1VPx8rj8EUz1bDfEUUBjmoRgX2TyBf2UAdXwQneNnM6heXiwhWaeQJ92NDWUBg8Bbs/H7l7T9qjmb5ivu/ZRAVRUtz9jkYJXhthUMlSEAYWTW1IxjbTZfZMJjdYbddEOY2YXKybfsJX2QEzXsFPraoq4vPpy5Ss= example.com
+              authorized-keys: 
+                - "{{ myvm.authorized_key }}"
             storage:
               # layout:
               #   name: direct
@@ -186,8 +186,8 @@
             user-data:
               timezone: Asia/Kuala_Lumpur
               disable_root: false
-              ssh_authorized_keys:
-                - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDHD9KVM3wq0qtTrXRPVvw49RDikRy1ELyomzwbLELTFNPURLKtK/NRTSOA9SOt60nlVcHXvnYHE/g+Gx6eZoUD3vu+AccYgJG9VHZhRLnTJS6r5wZ9Jp5fAAbT+MUJ67jXs+fV68mudeRzY8zU7eM/AKrMZOi04el9NQxIrAp0sR4zqLumROGv5tdK50iTrCme4LhLOFsTNwnvr0LASo4tDlWmzCJRLybPVjKcHXQgX6OQt+RUVnjbE84FWGiaYMi53l3Kh9fFsGWe/vy2iSzf7zvRgRCSDxxPB1k81WzQT2f+Hknkx43SMdVywrA+aVk5WVy34wihnlJ2x0apTDNIXUjaReTGaAFD1VPx8rj8EUz1bDfEUUBjmoRgX2TyBf2UAdXwQneNnM6heXiwhWaeQJ92NDWUBg8Bbs/H7l7T9qjmb5ivu/ZRAVRUtz9jkYJXhthUMlSEAYWTW1IxjbTZfZMJjdYbddEOY2YXKybfsJX2QEzXsFPraoq4vPpy5Ss= example.com
+              ssh_authorized_keys: 
+               - "{{ myvm.authorized_key }}"
               package_update: true
               package_upgrade: true
               power_state:
