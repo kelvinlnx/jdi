@@ -18,11 +18,12 @@
 function do_it {
   $ANSIBLE_CMD $1
 
-  echo -en "\e[0m"
   if [ $? -ne 0 ]; then
-    echo "$1 playbook encountered problem!" >&2
+    echo "\e[0m$1 playbook encountered problem!" >&2
     exit 1
   fi
+  echo -en "\e[0m"
+  
 }
 
 function check_app {
@@ -66,8 +67,11 @@ echo "  - sage.yaml      --> update cloud-config"
 echo "  - ansible.cfg    --> remote_user same as registry_vm.username in all-vars"
 echo 
 echo "Stop the program now if you haven't done so (Ctrl-C)"
-echo "Installation will proceed in 10 seconds"
-read -t 10
+echo -n "Installation will proceed in 10 seconds"
+for CNT in `seq 9 -1 1`; do
+  sleep 1
+  echo -ne "\b\b\b\b\b\b\b\b\b\b $CNT seconds"
+done
 
 # Setup initial environment
 ###############################################################################

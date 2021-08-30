@@ -1,0 +1,212 @@
+---
+# tasks file for kelvinlnx.okd_repo
+
+# Task only needed if using seed.iso
+# - name: INIT: Install the cloud-image-utils package
+#   apt:
+#     name: cloud-image-utils
+#     state: latest
+#     update_cache: yes
+#   become: True
+
+- name: "INIT: Create temp directory - {{ gen_dir }}/cidata"
+  file:
+    path: "{{ gen_dir }}/cidata"
+    state: directory
+    recurse: yes
+
+- name: "INIT: Get libvirt networks"
+  virt_net:
+    command: list_nets
+  register: a_result
+
+- name: "INIT: Ensure {{ virt_net_name }} network exists"
+  assert:
+    that:
+    - virt_net_name in a_result.list_nets
+
+- name: "INIT: Get network xml"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: get_xml
+  register: a_result
+
+- name: "INIT: Set registry gateway fact"
+  set_fact:
+    reg_gw: "{{ (a_result.get_xml | regex_search(\"ip.*address='([0-9\\.]*)'\",\"\\1\")) | first }}"
+
+- name: "INIT: Set registry ip facts"
+  set_fact:
+    reg_ip: "{{ reg_gw | regex_search(\"^([0-9]{1,3}\\.){3}\") }}{{ myvm.host_ip }}"
+
+- name: "INIT: Set registry MAC facts"
+  set_fact:
+    reg_mac: "{{ reg_ip | hash('md5') | regex_replace(\"^(..)(..)(..).*$\",\"52:54:00:\\1:\\2:\\3\") }}"
+
+- name: "NET: reserve ip for myvm"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: modify
+    xml: "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+  ignore_errors: true
+
+- name: "NET: Check directory for dnsmasq hosts file"
+  file:
+    path: /usr/local/etc/domains
+    state: directory
+    recurse: True
+    mode: u=rwx,g=rx,o=rx
+  become: true
+
+- name: "NET: create dnsmasq entry for {{ myvm.name }}"
+  lineinfile:
+    path: /usr/local/etc/domains/{{ virt_net_domain }}
+    line: "{{ reg_ip }}\t{{ myvm.name }}"
+    state: present
+    create: True
+  become: true
+
+#  to be deleted after verifying ================================================================================
+  # - name: "NET: configure local resolving /etc/hosts"
+  #   lineinfile:
+  #     line: "{{ registry_ip }} {{ myvm.fqdn }} {{ myvm.name }}"
+  #     dest: /etc/hosts
+  #   become: true
+
+- name: "VM: create autoinstall file - meta-data"
+  file:
+    path: "{{ gen_dir }}/cidata/meta-data"
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+
+# apt repo info from https://podman.io/getting-started/installation
+- name: "VM: create autoinstall file - user-data"
+  template:
+    src: user-data.j2
+    dest: "{{ gen_dir }}/cidata/user-data"
+################################################## update the testing great above
+
+    # Only needed if using kvm instead of virt-install
+    # - name: "VM: copy vmlinuz and initrd"
+    #   iso_extract:
+    #     image: "{{ os_iso }}"
+    #     dest: "{{ gen_dir }}"
+    #     files:
+    #       - casper/vmlinuz
+    #       - casper/initrd
+    #   become: true
+
+    # - name: "VM: create seed.iso for data source"
+    #   shell: |
+    #     cd {{ gen_dir }}/cidata
+    #     cloud-localds ../seed.iso user-data meta-data
+
+- name: "VM: Create vm disk - {{ myvm.disk.path }}"
+  command: qemu-img create -f qcow2 {{ myvm.disk.path }} {{ myvm.disk.size }}
+  become: true
+
+# start webserver on port {{ tmp_port }} serving user-data for 2 minutes
+- name: "WEBSERVER: start temporary webserver at port {{ tmp_port }}"
+  command:
+    cmd: python3 -m http.server {{ tmp_port }}
+    chdir: "{{ gen_dir }}/cidata"
+  async: 120
+  poll: 0
+  register: cmd_result
+
+- name: "VM: Collect libvirt network facts"
+  virt_net:
+    command: facts
+    name: "{{ virt_net_name }}"
+
+- name: "FIREWALL: Get status"
+  command: "ufw status"
+  changed_when: False
+  become: true
+  register: a_result
+
+- name: "FIREWALL: enable incoming connection from bridge to port {{ tmp_port }}"
+  ufw:
+    rule: allow
+    direction: in
+    from_ip: "{{ reg_ip | ipsubnet(24) }}"
+    to_ip: "{{ reg_gw }}"
+    to_port: "'{{ tmp_port }}'"
+    interface: "{{ (ansible_libvirt_networks|json_query( virt_net_name )).bridge }}"
+  become: true
+  when: "'inactive' not in a_result.stdout"
+#######################################################################TEST WITH AND WITHOUT FIREWALL 
+
+#        -drive file={{ GEN_DIR }}/seed.iso,format=raw,cache=none,if=virtio \
+- name: "VM: Finally installing vm - {{ myvm.name }}"
+  shell: |
+    virt-install --name {{ myvm.name }} \
+                 --memory {{ myvm.memory }} \
+                 --vcpus {{ myvm.vcpu }} \
+                 --disk {{ myvm.disk.path }} \
+                 --location {{ os_iso }},kernel=casper/vmlinuz,initrd=casper/initrd \
+                 --extra-args "autoinstall ds=nocloud-net;s=http://{{ reg_gw }}:{{ tmp_port }}/" \
+                 --network network=default,mac={{ reg_mac }} \
+                 --cpu host-passthrough \
+                 --arch x86_64 --hvm --virt-type kvm \
+                 --machine q35 \
+                 --os-variant ubuntu20.04
+  # --extra-args "autoinstall ds=nocloud-net;s=http://{{ myvm.gateway }}:{{ myvm.registry.port }}/" \
+  # kvm -no-reboot -m 1024 \
+  #     -drive file=/var/lib/libvirt/images/{{ myvm.disk }},format=qcow2,cache=none,if=virtio \
+  #     -cdrom {{ os_iso }} \
+  #     -kernel {{ GEN_DIR }}/vmlinuz \
+  #     -initrd {{ GEN_DIR }}/initrd \
+  #     -append "autoinstall ds=nocloud-net;s=http://_gateway:{{ myvm.registry.port }}/"
+  #become: true
+
+# - async_status:
+#     jid: "{{ cmd_result.ansible_job_id }}"
+#     mode: cleanup
+# async_status doesn't do proper cleanup job.
+
+- name: "VM: Power up {{ myvm.name }}"
+  virt:
+    name: "{{ myvm.name }}"
+    state: running
+
+- name: "CLEANUP: manual cleanup async files"
+  shell: rm -rf {{ cmd_result.results_file}}*
+
+- name: "CLEANUP: remove firewall rule that was created earlier"
+  ufw:
+    delete: true
+    rule: allow
+    direction: in
+    from_ip: "{{ reg_ip | ipsubnet(24) }}"
+    to_ip: "{{ reg_gw }}"
+    to_port: "'{{ tmp_port }}'"
+    interface: "{{ansible_libvirt_networks.default.bridge }}"
+  become: true
+  when: "'inactive' not in a_result.stdout"
+
+- name: "CLEANUP: remove any previous {{ myvm.name }} entries from known_hosts"
+  known_hosts:
+    name: "{{ item }}"
+    path: "~/.ssh/known_hosts"
+    state: absent
+  loop:
+    - "{{ myvm.name }}"
+    - "{{ myvm.fqdn }}"
+    - "{{ reg_ip }}"
+
+- name: "POST: create inventory directory"
+  file:
+    path: ./inventory
+    state: directory
+
+========================================================================TRY AND CHECK
+- name: "POST: generate inventory file"
+  ini_file:
+    path: ./inventory/hosts
+    section: "{{ registry_group }}"
+    option: "{{ myvm.name }}"
+    state: present
+    allow_no_value: True
+...
