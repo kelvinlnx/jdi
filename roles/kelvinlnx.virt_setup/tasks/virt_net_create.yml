@@ -47,7 +47,6 @@
   file:
     path: /usr/local/etc/domains
     state: directory
-    recurse: True
     mode: u=rwx,g=rx,o=rx
     
 - name: Initialize the dns hosts file
