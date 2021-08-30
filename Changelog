@@ -10,6 +10,9 @@
 		- corrected logical error naming web port
 		- will be retiring sage.yaml
 
+	* roles/kelvinlnx.virt_setup (update):
+		- added creation domains directory file and removal
+
 2021-08-29	Kelvin Lai
 
 	Decide to update project to make use of roles for reusability.
