@@ -1,0 +1,5 @@
+---
+# defaults file for kelvinlnx.virt_setup
+virt_net_remove: False
+virt_net_name: okd
+virt_net_domain: example.com

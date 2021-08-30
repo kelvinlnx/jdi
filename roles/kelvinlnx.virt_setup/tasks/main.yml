@@ -1,0 +1,10 @@
+---
+# tasks file for kelvinlnx.virt_setup
+- debug: msg="create {{ virt_net_remove }}"
+- name: create the virtual network
+  include_tasks: virt_net_create.yml
+  when: not virt_net_remove | bool
+
+- name: remove the virtual network
+  include_tasks: virt_net_remove.yml
+  when: virt_net_remove | bool

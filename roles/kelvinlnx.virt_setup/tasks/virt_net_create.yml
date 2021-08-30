@@ -1,0 +1,67 @@
+- name: get all libvirt network names
+  virt_net:
+    command: list_nets
+  register: a_result
+
+- block:
+  - name: get network xml
+    virt_net:
+      name: "{{ item }}"
+      command: get_xml
+    loop: "{{ a_result.list_nets }}"
+    register: b_result
+
+  - name: set xml and network address facts
+    set_fact:
+      net_xml: "{{ (b_result | json_query('results[*].get_xml')) | first }}"
+      default_net_ip:
+        "{{ (b_result.results 
+        | selectattr('item', 'match', 'default')
+        | first).get_xml
+        | regex_search(\"ip.*address='([0-9\\.]*)'\",\"\\1\")
+        | first }}"
+
+  - name: set new network fact
+    set_fact:
+      new_net: >-
+        {%- set ns = namespace(found=false) -%}
+        {%- set net_portion=(default_net_ip|regex_search("^([0-9]{1,3}\.){2}")) -%}
+        {%- for subnet in range(default_net_ip.split('.')[2]|int,250) -%}
+        {%- if ns.found is sameas false -%}
+        {%- if (net_xml | regex_findall( net_portion + subnet|string ) | count ) == 0 -%}
+        {%- set ns.found=true -%}
+        {{ net_portion + subnet|string }}
+        {%- else -%}
+        {%- endif -%}
+        {%- endif -%}
+        {%- endfor -%}
+
+  - name: define {{ virt_net_name }} network
+    virt_net:
+      command: define
+      name: "{{ virt_net_name }}"
+      xml: '{{ lookup("template", "virt_net.xml.j2") }}'
+  when: virt_net_name not in a_result.list_nets
+
+- name: create directory to hold dns records
+  file:
+    path: /usr/local/etc/domains
+    state: directory
+    recurse: True
+    mode: u=rwx,g=rx,o=rx
+    
+- name: Initialize the dns hosts file
+  file:
+    path: /usr/local/etc/domains/{{ virt_net_domain }}
+    state: touch
+    mode: u=rw,g=r,o=r
+    
+- name: make sure {{ virt_net_name }} is started
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: start
+
+- name: make sure {{ virt_net_name }} is autostart
+  virt_net:
+    name: "{{ virt_net_name }}"
+    autostart: true
