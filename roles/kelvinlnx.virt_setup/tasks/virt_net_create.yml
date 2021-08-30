@@ -48,12 +48,14 @@
     path: /usr/local/etc/domains
     state: directory
     mode: u=rwx,g=rx,o=rx
+  become: true
     
 - name: Initialize the dns hosts file
   file:
     path: /usr/local/etc/domains/{{ virt_net_domain }}
     state: touch
     mode: u=rw,g=r,o=r
+  become: true
     
 - name: make sure {{ virt_net_name }} is started
   virt_net:
