@@ -14,7 +14,7 @@ ocp_release: 4.6.31
 ocp_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 
 # The location of the ubuntu iso
-os_iso: ~/Downloads/ubuntu-20.04.2-live-server-amd64.iso
+os_iso: ~/Downloads/ubuntu-20.04.3-live-server-amd64.iso
 
 registry_vm:
   name: &reg_sname "myreg"                              # you may change the name between ""
