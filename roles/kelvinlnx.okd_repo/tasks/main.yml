@@ -147,7 +147,7 @@
                  --disk {{ myvm.disk.path }} \
                  --location {{ os_iso }},kernel=casper/vmlinuz,initrd=casper/initrd \
                  --extra-args "autoinstall ds=nocloud-net;s=http://{{ reg_gw }}:{{ tmp_port }}/" \
-                 --network network=default,mac={{ reg_mac }} \
+                 --network network={{ virt_net_name }},mac={{ reg_mac }} \
                  --cpu host-passthrough \
                  --arch x86_64 --hvm --virt-type kvm \
                  --machine q35 \
@@ -201,7 +201,7 @@
     path: ./inventory
     state: directory
 
-========================================================================TRY AND CHECK
+#========================================================================TRY AND CHECK
 - name: "POST: generate inventory file"
   ini_file:
     path: ./inventory/hosts

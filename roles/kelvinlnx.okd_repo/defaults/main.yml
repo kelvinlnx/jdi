@@ -8,13 +8,13 @@ virt_net_name: okd
 virt_net_domain: example.com
 
 # The location of the ubuntu iso
-os_iso: ~/Downloads/ubuntu-20.04.2-live-server-amd64.iso
+os_iso: ~/Downloads/ubuntu-20.04.3-live-server-amd64.iso
 
 myvm:
   type: registry_host
   host_ip: 88                             # only the host portion
   name: myreg
-  fqdn: myreg.example.com
+  fqdn: myreg.{{ virt_net_domain }}
   memory: 1024
   vcpu: 1
   disk:                                   # the following 3 lines used by create vm disk

@@ -1,107 +1,107 @@
 #cloud-config
 autoinstall:
-version: 1
-identity:
-  hostname: {{ myvm.fqdn }}
-  username: {{ myvm.username }}
-  password: "{{ myvm.password | password_hash('sha512') }}"
-locale: en_US
-keyboard:
-  layout: us
-  toggle: null
-  variant: ''
-network:
+  version: 1
+  identity:
+    hostname: {{ myvm.fqdn }}
+    username: {{ myvm.username }}
+    password: "{{ myvm.password | password_hash('sha512') }}"
+  locale: en_US
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
   network:
-    version: 2
-    ethernets:
-      enp1s0:
-        # dhcp4: yes
-        addresses: [ {{ reg_ip }}/24 ]
-        gateway4: {{ reg_gw }}
-        nameservers:
-          search: [ {{ virt_net_domain }} ]
-          addresses: [ {{ reg_gw }} ]
-apt:
-  preserve_sources_list: false
-  primary:
-    - arches: [default]
-      uri: http://registry.example.com/mirror/ubuntu
-  sources:
-    devel:kubic:libcontainers:stable:
-      source: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /"
-      key: |
-        -----BEGIN PGP PUBLIC KEY BLOCK-----
-        Version: GnuPG v1.4.5 (GNU/Linux)
+    network:
+      version: 2
+      ethernets:
+        enp1s0:
+          # dhcp4: yes
+          addresses: [ {{ reg_ip }}/24 ]
+          gateway4: {{ reg_gw }}
+          nameservers:
+            search: [ {{ virt_net_domain }} ]
+            addresses: [ {{ reg_gw }} ]
+  apt:
+    preserve_sources_list: false
+    primary:
+      - arches: [default]
+        uri: http://192.168.122.2/mirror/ubuntu
+    sources:
+      devel:kubic:libcontainers:stable:
+        source: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /"
+        key: |
+          -----BEGIN PGP PUBLIC KEY BLOCK-----
+          Version: GnuPG v1.4.5 (GNU/Linux)
 
-        mQENBFtkV0cBCADStSTCG5qgYtzmWfymHZqxxhfwfS6fdHJcbGUeXsI5dxjeCWhs
-        XarZm6rWZOd5WfSmpXhbKOyM6Ll+6bpSl5ICHLa6fcpizYWEPa8fpg9EGl0cF12G
-        GgVLnnOZ6NIbsoW0LHt2YN0jn8xKVwyPp7KLHB2paZh+KuURERG406GXY/DgCxUx
-        Ffgdelym/gfmt3DSq6GAQRRGHyucMvPYm53r+jVcKsf2Bp6E1XAfqBrD5r0maaCU
-        Wvd7bi0B2Q0hIX0rfDCBpl4rFqvyaMPgn+Bkl6IW37zCkWIXqf1E5eDm/XzP881s
-        +yAvi+JfDwt7AE+Hd2dSf273o3WUdYJGRwyZABEBAAG0OGRldmVsOmt1YmljIE9C
-        UyBQcm9qZWN0IDxkZXZlbDprdWJpY0BidWlsZC5vcGVuc3VzZS5vcmc+iQE+BBMB
-        CAAoBQJfcJJOAhsDBQkIKusHBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRBN
-        ZDkDdQYKpB0xCACmtCT6ruPiQa4l0DEptZ+u3NNbZfSVGH4fE4hyTjLbzrCxqcoh
-        xJvDKxspuJ85wWFWMtl57+lFFE1KP0AX2XTT+/v2vN1PIfwgOSw3yp2sgWuIXFAi
-        89YSjSh8G0SGAH90A9YFMnTbllzGoGURjSX03iasW3A408ljbDehA6rpS3t3FD7P
-        PnUF6204orYu00Qvc54an/xVJzxupb69MKW5EeK7x8MJnIToT8hIdOdGVD6axsis
-        x+1U71oMK1gBke7p4QPUdhJFpSUd6kT8bcO+7rYouoljFNYkUfwnqtUn7525fkfg
-        uDqqXvOJMpJ/sK1ajHOeehp5T4Q45L/qUCb3iEYEExECAAYFAltkV0cACgkQOzAR
-        t2udZSOoswCdF44NTN09DwhPFbNYhEMb9juP5ykAn0bcELvuKmgDwEwZMrPQkG8t
-        Pu9n
-        =42uC
-        -----END PGP PUBLIC KEY BLOCK-----
+          mQENBFtkV0cBCADStSTCG5qgYtzmWfymHZqxxhfwfS6fdHJcbGUeXsI5dxjeCWhs
+          XarZm6rWZOd5WfSmpXhbKOyM6Ll+6bpSl5ICHLa6fcpizYWEPa8fpg9EGl0cF12G
+          GgVLnnOZ6NIbsoW0LHt2YN0jn8xKVwyPp7KLHB2paZh+KuURERG406GXY/DgCxUx
+          Ffgdelym/gfmt3DSq6GAQRRGHyucMvPYm53r+jVcKsf2Bp6E1XAfqBrD5r0maaCU
+          Wvd7bi0B2Q0hIX0rfDCBpl4rFqvyaMPgn+Bkl6IW37zCkWIXqf1E5eDm/XzP881s
+          +yAvi+JfDwt7AE+Hd2dSf273o3WUdYJGRwyZABEBAAG0OGRldmVsOmt1YmljIE9C
+          UyBQcm9qZWN0IDxkZXZlbDprdWJpY0BidWlsZC5vcGVuc3VzZS5vcmc+iQE+BBMB
+          CAAoBQJfcJJOAhsDBQkIKusHBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRBN
+          ZDkDdQYKpB0xCACmtCT6ruPiQa4l0DEptZ+u3NNbZfSVGH4fE4hyTjLbzrCxqcoh
+          xJvDKxspuJ85wWFWMtl57+lFFE1KP0AX2XTT+/v2vN1PIfwgOSw3yp2sgWuIXFAi
+          89YSjSh8G0SGAH90A9YFMnTbllzGoGURjSX03iasW3A408ljbDehA6rpS3t3FD7P
+          PnUF6204orYu00Qvc54an/xVJzxupb69MKW5EeK7x8MJnIToT8hIdOdGVD6axsis
+          x+1U71oMK1gBke7p4QPUdhJFpSUd6kT8bcO+7rYouoljFNYkUfwnqtUn7525fkfg
+          uDqqXvOJMpJ/sK1ajHOeehp5T4Q45L/qUCb3iEYEExECAAYFAltkV0cACgkQOzAR
+          t2udZSOoswCdF44NTN09DwhPFbNYhEMb9juP5ykAn0bcELvuKmgDwEwZMrPQkG8t
+          Pu9n
+          =42uC
+          -----END PGP PUBLIC KEY BLOCK-----
 
-ssh:
-  allow-pw: true
-  install-server: true
-  authorized-keys: 
-    - "{{ myvm.authorized_key }}"
-storage:
-  # layout:
-  #   name: direct
-  #   match:
-  #     path: /dev/vda
-  config:
-    - id: disk-vda
-      path: /dev/vda
-      ptable: gpt
-      type: disk
-      grub_device: true
-    - device: disk-vda
-      flag: bios_grub
-      id: partition-vda1
-      number: 1
-      size: 1048576
-      type: partition
-    - device: disk-vda
-      flag: linux
-      id: partition-vda2
-      number: 2
-      size: -1
-      type: partition
-    - fstype: ext4
-      id: format-partition-vda2
-      type: format
-      volume: partition-vda2
-    - id: format-partition-vda2-mount
-      device: format-partition-vda2
-      type: mount
-      path: /
-packages:
-  - apache2
-  - podman
-user-data:
-  timezone: Asia/Kuala_Lumpur
-  disable_root: false
-  ssh_authorized_keys: 
-   - "{{ myvm.authorized_key }}"
-  package_update: true
-  package_upgrade: true
-  power_state:
-    mode: poweroff
-  runcmd:
-    - echo testing > /etc/great
-late-commands:
-  - "echo '{{ myvm.username }} ALL=(ALL) NOPASSWD: ALL' > /target/etc/sudoers.d/{{ myvm.username }}"
-#  - ". /etc/os-release; echo version is $VERSION_ID gotit > /target/etc/hahaha" 
+  ssh:
+    allow-pw: true
+    install-server: true
+    authorized-keys: 
+      - "{{ myvm.authorized_key }}"
+  storage:
+    # layout:
+    #   name: direct
+    #   match:
+    #     path: /dev/vda
+    config:
+      - id: disk-vda
+        path: /dev/vda
+        ptable: gpt
+        type: disk
+        grub_device: true
+      - device: disk-vda
+        flag: bios_grub
+        id: partition-vda1
+        number: 1
+        size: 1048576
+        type: partition
+      - device: disk-vda
+        flag: linux
+        id: partition-vda2
+        number: 2
+        size: -1
+        type: partition
+      - fstype: ext4
+        id: format-partition-vda2
+        type: format
+        volume: partition-vda2
+      - id: format-partition-vda2-mount
+        device: format-partition-vda2
+        type: mount
+        path: /
+  packages:
+    - apache2
+    - podman
+  user-data:
+    timezone: Asia/Kuala_Lumpur
+    disable_root: false
+    ssh_authorized_keys: 
+      - "{{ myvm.authorized_key }}"
+    package_update: true
+    package_upgrade: true
+    power_state:
+      mode: poweroff
+    runcmd:
+      - echo testing > /etc/great
+  late-commands:
+    - "echo '{{ myvm.username }} ALL=(ALL) NOPASSWD: ALL' > /target/etc/sudoers.d/{{ myvm.username }}"
+#    - ". /etc/os-release; echo version is $VERSION_ID gotit > /target/etc/hahaha"
