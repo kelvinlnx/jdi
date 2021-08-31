@@ -1,5 +1,9 @@
 ---
+#
+# If you need to make changes, just duplicate defaults/main.yml
+# into your project vars folder and include it in vars_files.
+#
 - hosts: localhost
-  remote_user: root
+  # remote_user: root
   roles:
     - kelvinlnx.okd_repo
