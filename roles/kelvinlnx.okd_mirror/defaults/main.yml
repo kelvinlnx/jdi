@@ -11,7 +11,7 @@ gen_dir: ./generated
 cert_dir: "{{ gen_dir }}/private"
 
 tmp_host:
-- name: "myreg"                           # name used by container
+  name: "myreg"                           # name used by container
   registry:
     username: reguser
     password: regpass

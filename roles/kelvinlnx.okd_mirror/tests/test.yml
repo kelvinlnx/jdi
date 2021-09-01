@@ -1,5 +1,5 @@
 ---
-- hosts: localhost
+- hosts: myreg.tmp.example.com
   remote_user: root
   roles:
     - kelvinlnx.okd_mirror
