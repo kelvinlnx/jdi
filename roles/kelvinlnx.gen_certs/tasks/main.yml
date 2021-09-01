@@ -1,0 +1,14 @@
+---
+# tasks file for kelvinlnx.gen_certs
+- name: "CERT_INIT: Create directory to store key"
+  file:
+    path: "{{ CERT_DIR }}"
+    state: directory
+    mode: 0700
+
+- name: "CERT_INIT: Include create_root_ca.yml"
+  include_tasks: create_root_ca.yml
+  when: generate_ca | bool
+
+- name: "CERT_INIT: Include create_certs.yml"
+  include_tasks: create_certs.yml

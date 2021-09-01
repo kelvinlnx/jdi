@@ -1,0 +1,32 @@
+- name: "ROOT_CA: Generate root key"
+  openssl_privatekey:
+    path: "{{ ca.files.key }}"
+    passphrase: "{{ ca.pass }}"
+    select_crypto_backend: cryptography
+    cipher: auto
+    backup: true
+
+- name: "ROOT_CA: Check Root CA"
+  stat:
+    path: "{{ ca.files.crt }}"
+  register: stat_result
+
+# Generate and Sign Root Cert only if it doesn't exist
+- name: "ROOT_CA: Generate root cert"
+  vars:
+    ca_subj:
+      "/C={{ ca.subj.country }}\
+      /ST={{ ca.subj.state }}\
+      /L={{ ca.subj.locality }}\
+      /O={{ ca.subj.org }}\
+      /OU={{ ca.subj.ou }}\
+      /CN={{ ca.subj.cn }}\
+      /emailAddress={{ ca.subj.emailAddress }}"
+  command: |
+    openssl req -x509 -new -sha256 -nodes \
+           -key {{ ca.files.key }} -out {{ ca.files.crt }} \
+           -days {{ ca.days }} \
+           -subj "{{ ca_subj }}" \
+           -extensions v3_ca \
+           -passin pass:"{{ ca.pass }}"
+  when: not stat_result.stat.exists

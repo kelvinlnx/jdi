@@ -12,7 +12,6 @@ virt_net_domain: example.com
 os_iso: ~/Downloads/ubuntu-20.04.3-live-server-amd64.iso
 
 myvm:
-  type: registry_host
   host_ip: 88                             # only the host portion
   name: myreg
   fqdn: myreg.{{ virt_net_domain }}

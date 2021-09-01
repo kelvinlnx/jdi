@@ -1,0 +1,45 @@
+---
+# defaults file for kelvinlnx.gen_certs
+generate_ca: true
+
+cert_domain: tmp.example.com
+
+gen_dir: ./generated
+cert_dir: "{{ gen_dir }}/private"
+
+ca:
+  name: &ca_sname myca                                    # short hostname
+  fqdn: &ca_lname "{{ tmp_ca_sname }}.{{ cert_domain }}"  # fully qualified domain name
+  files:
+    key: "{{ cert_dir }}/{{ tmp_ca_lname }}.key"          # location of CA private key
+    crt: "{{ cert_dir }}/{{ tmp_ca_lname }}.crt"          # location of CA certificate
+  subj:
+    country: SG
+    state: Singapore
+    locality: Singapore
+    org: EXAMPLE COM                                      # Organization
+    ou: IT                                                # Department
+    cn: Boss
+    emailAddress: owner@{{ tmp_ca_lname }}
+  days: 3650
+  pass: "{{ ca_pass | default('MyCAPass') }}"             # replace the value MyCAPass if using own CA Cert
+
+clients:
+- name: &reg_sname myreg
+  fqdn: &reg_lname "{{ tmp_reg_sname }}.{{cert_domain}}"
+  files:
+    key: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.key"
+    crt: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.crt"
+    csr: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.csr"
+  subj:
+    country: MY
+    state: Kuala Lumpur
+    locality: KL
+    org: EXAMPLE.COM
+    ou: IT
+  days: 3650
+
+tmp_ca_sname: *ca_sname
+tmp_ca_lname: *ca_lname
+tmp_reg_sname: *reg_sname
+tmp_reg_lname: *reg_lname

@@ -1,0 +1,29 @@
+- name: "CERT: Genereate Private Key for clients"
+  openssl_privatekey:
+    path: "{{ item.files.key }}"
+  loop: "{{ clients }}"
+
+- name: "CERT: Generate Certificate Signing Requests for clients"
+  openssl_csr:
+    path: "{{ item.files.csr }}"
+    privatekey_path: "{{ item.files.key }}"
+    country_name: "{{ item.subj.country }}"
+    state_or_province_name: "{{ item.subj.state }}"
+    locality_name: "{{ item.subj.locality }}"
+    organization_name: "{{ item.subj.org }}"
+    organizational_unit_name: "{{ item.subj.ou }}"
+    common_name: "{{ item.fqdn }}"
+#            email_address: ""
+    subject_alt_name: "DNS:{{ item.name }},DNS:{{ item.fqdn }}"
+  loop: "{{ clients }}"
+
+# ownca_not_after default is +3650d (10 yrs)
+- name: "CERT: Sign CSR with CA key"
+  openssl_certificate:
+    path: "{{ item.files.crt }}"
+    csr_path: "{{ item.files.csr }}"
+    ownca_path: "{{ ca.files.crt }}"
+    ownca_privatekey_path: "{{ ca.files.key }}"
+    ownca_privatekey_passphrase: "{{ ca.pass }}"
+    provider: ownca
+  loop: "{{ clients }}"

@@ -1,5 +1,8 @@
 2021-09-01	Kelvin Lai
-	Made use of systemd-resolve to lookup okd network dns
+	Made use of systemd-resolve to lookup okd network dns. Fixed all bugs in both roles.
+
+	* roles/kelvinlnx.gen_certs (new role)
+		- created role from genkey.yaml playbook
 
 	* roles/kelvinlnx.virt_setup/tasks/virt_net_create (feature add)
 	    - added tasks to copy template to /etc/NetworkManager/dispatcher.d
@@ -14,6 +17,7 @@
 
 	* roles/kelvinlnx.okd_registry  (renamed)
 		- renamed okd_repo to okd_registry
+		- cleanup defaults/main.yml variable file
 
 	* jdi (fix)
 		- updated Installation message only displays if showme option not used
