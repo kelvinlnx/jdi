@@ -16,13 +16,22 @@
     state: absent
   become: true
 
-- name: "VM: Remove VM"
+- name: "VM: Get VM list"
+  virt:
+    command: list_vms
+  register: a_result
+
+- name: "VM: Turn off VM"
   virt:
     name: "{{ myvm.name }}"
-    command: "{{ item }}"
-  loop:
-    - destroy
-    - undefine
+    command: destroy
+  when: "'myvm.name' in a_result.list_vms"
+
+- name: "VM: Delete VM"
+  virt:
+    name: "{{ myvm.name }}"
+    command: destroy
+  ignore_errors: True
 
 - name: "VM: Remove image file"
   file:
