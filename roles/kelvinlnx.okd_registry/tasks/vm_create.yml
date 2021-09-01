@@ -187,7 +187,7 @@
   ini_file:
     path: ./inventory/hosts
     section: "{{ registry_group }}"
-    option: "{{ myvm.name }}"
+    option: "{{ myvm.fqdn }}"
     state: present
     allow_no_value: True
 ...
