@@ -164,7 +164,7 @@
     from_ip: "{{ reg_ip | ipsubnet(24) }}"
     to_ip: "{{ reg_gw }}"
     to_port: "'{{ tmp_port }}'"
-    interface: "{{ansible_libvirt_networks.default.bridge }}"
+    interface: "{{ (ansible_libvirt_networks|json_query( virt_net_name )).bridge }}"
   become: true
   when: "'inactive' not in a_result.stdout"
 
