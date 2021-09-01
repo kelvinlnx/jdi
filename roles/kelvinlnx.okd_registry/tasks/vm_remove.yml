@@ -1,4 +1,4 @@
-- virt_net_name in a_result.list_nets- name: "INIT: get facts"
+- name: "INIT: get facts"
   import_tasks: get_net_facts.yml
 
 - name: "NET: Remove reserved ip for myvm from {{ virt_net_name }}"
