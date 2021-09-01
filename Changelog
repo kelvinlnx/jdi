@@ -1,3 +1,10 @@
+
+2021-08-31	Kelvin Lai
+	Configured extra dnsmasq options to enable secure and forwarding.
+
+	* roles/kelvinlnx.virt_setup
+		- added rebind-domain-ok, server and dnssec
+
 2021-08-30	Kelvin Lai
 
 	Started converting playbooks to roles.
