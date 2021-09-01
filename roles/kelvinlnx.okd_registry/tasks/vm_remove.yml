@@ -28,3 +28,4 @@
   file:
     path: "{{ myvm.disk.path }}"
     state: absent
+  become: true
