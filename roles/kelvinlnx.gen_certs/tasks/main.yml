@@ -2,7 +2,7 @@
 # tasks file for kelvinlnx.gen_certs
 - name: "CERT_INIT: Create directory to store key"
   file:
-    path: "{{ CERT_DIR }}"
+    path: "{{ cert_dir }}"
     state: directory
     mode: 0700
 
