@@ -28,9 +28,9 @@ clients:
 - name: &reg_sname myreg
   fqdn: &reg_lname "{{ tmp_reg_sname }}.{{cert_domain}}"
   files:
-    key: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.key"
-    crt: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.crt"
-    csr: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.csr"
+    key: "{{ cert_dir }}/{{ tmp_reg_lname }}.key"
+    crt: "{{ cert_dir }}/{{ tmp_reg_lname }}.crt"
+    csr: "{{ cert_dir }}/{{ tmp_reg_lname }}.csr"
   subj:
     country: MY
     state: Kuala Lumpur
