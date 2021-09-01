@@ -61,18 +61,6 @@ if [[ "$*" == *"--help" ]]; then
   exit 1
 fi
 
-echo "Make sure you have configure the files:"
-echo "  - vars/all-vars  --> your settings"
-echo "  - sage.yaml      --> update cloud-config"
-echo "  - ansible.cfg    --> remote_user same as registry_vm.username in all-vars"
-echo 
-echo "Stop the program now if you haven't done so (Ctrl-C)"
-echo -n "Installation will proceed in 10 seconds"
-for CNT in `seq 9 -1 1`; do
-  sleep 1
-  echo -ne "\b\b\b\b\b\b\b\b\b\b $CNT seconds"
-done
-
 # Setup initial environment
 ###############################################################################
 if [[ "$*" == *"memory"* ]]; then
@@ -92,6 +80,18 @@ if [[ "$*" == *"showme"* ]]; then
   ANSIBLE_CMD="echo -e \e[3;32m$ANSIBLE_CMD"
   ADHOC_CMD="echo -e \e[3;32m$ADHOC_CMD"
   GALAXY_CMD="echo -e \e[3;32m$GALAXY_CMD"
+else
+  echo "Make sure you have configure the files:"
+  echo "  - vars/all-vars  --> your settings"
+  echo "  - sage.yaml      --> update cloud-config"
+  echo "  - ansible.cfg    --> remote_user same as registry_vm.username in all-vars"
+  echo 
+  echo "Stop the program now if you haven't done so (Ctrl-C)"
+  echo -n "Installation will proceed in 10 seconds"
+  for CNT in `seq 9 -1 1`; do
+    sleep 1
+    echo -ne "\b\b\b\b\b\b\b\b\b\b $CNT seconds"
+  done
 fi
 
 sudo -v
