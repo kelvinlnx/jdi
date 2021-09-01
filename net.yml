@@ -1,0 +1,17 @@
+---
+# virt_net_remove:
+#   False - Create the libvirt network, virt_net_name. Default.
+#   True  - Delete the libvirt network, virt_net_name.
+# virt_net_name:
+#   Name of the libvirt network. Default is okd.
+# virt_net_domain:
+#   The libvirt network domainname. Default is example.com
+#
+# Warning: If you use import_role instead of include_role make sure
+#          you explicitly set the virt_net_remove variable.
+#
+- hosts: localhost
+  roles:
+#    - { role: kelvinlnx.virt_setup, virt_net_remove: True, virt_net_domain: tmp.example.com }
+    - { role: kelvinlnx.virt_setup, virt_net_domain: tmp.example.com }
+
