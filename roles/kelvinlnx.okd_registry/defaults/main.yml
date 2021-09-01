@@ -1,7 +1,8 @@
 ---
-# defaults file for kelvinlnx.okd_repo
+# defaults file for kelvinlnx.okd_registry
 
 gen_dir: ./generated
+virt_registry_remove: False
 
 # variable also used by virt_setup role
 virt_net_name: okd

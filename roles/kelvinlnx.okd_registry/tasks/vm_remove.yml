@@ -1,0 +1,29 @@
+- virt_net_name in a_result.list_nets- name: "INIT: get facts"
+  import_tasks: get_net_facts.yml
+
+- name: "NET: Remove reserved ip for myvm from {{ virt_net_name }}"
+  command: >-
+    virsh net-update {{ virt_net_name }}
+    delete ip-dhcp-host
+    "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+  become: true
+
+- name: "NET: create dnsmasq entry for {{ myvm.name }}"
+  lineinfile:
+    path: /usr/local/etc/domains/{{ virt_net_domain }}
+    line: "{{ reg_ip }}\t{{ myvm.name }}"
+    state: absent
+  become: true
+
+- name: "VM: Remove VM"
+  virt:
+    name: "{{ myvm.name }}"
+    command: "{{ item }}"
+  loop:
+    - destroy
+    - undefine
+
+- name: "VM: Remove image file"
+  file:
+    path: "{{ myvm.disk.path }}"
+    state: absent

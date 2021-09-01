@@ -1,0 +1,9 @@
+---
+# tasks file for kelvinlnx.okd_registry
+- name: "VM: Create the virtual machine {{ myvm.name }}"
+  include_tasks: vm_create.yml
+  when: not virt_registry_remove | bool
+
+- name: "VM: Remove the virtual machine {{ myvm.name }}"
+  include_tasks: vm_remove.yml
+  when: virt_registry_remove | bool

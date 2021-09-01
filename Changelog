@@ -12,6 +12,9 @@
 		- file cleanup task placed outside rescue block, so that it works even if the network isn't there.
 		- modified tasks to remove the corresponding templates added in virt_net_create
 
+	* roles/kelvinlnx.okd_registry  (renamed)
+		- renamed okd_repo to okd_registry
+
 
 2021-08-31	Kelvin Lai
 
@@ -27,7 +30,7 @@
 	* ansible.cfg (update):
 		- added roles_path
 
-	* roles/kelvinlnx.okd_repo (role created):
+	* roles/kelvinlnx.okd_vm (role created):
 		- created role from sage playbook
 		- corrected logical error naming web port
 		- will be retiring sage.yaml

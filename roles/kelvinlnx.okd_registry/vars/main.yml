@@ -1,4 +1,4 @@
 ---
-# vars file for kelvinlnx.okd_repo
+# vars file for kelvinlnx.okd_registry
 registry_group: registry_host
 tmp_port: 12345

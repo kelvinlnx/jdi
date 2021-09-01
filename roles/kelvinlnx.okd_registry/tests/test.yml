@@ -5,5 +5,7 @@
 #
 - hosts: localhost
   # remote_user: root
+  vars:
+    virt_registry_remove: False
   roles:
-    - kelvinlnx.okd_repo
+    - kelvinlnx.okd_registry
