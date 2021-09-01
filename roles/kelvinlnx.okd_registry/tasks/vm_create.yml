@@ -9,12 +9,21 @@
 - name: "INIT: get facts"
   import_tasks: get_net_facts.yml
 
-- name: "NET: reserve ip for myvm"
-  virt_net:
-    name: "{{ virt_net_name }}"
-    command: modify
-    xml: "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
-  ignore_errors: true
+# Converted to use virsh net-update command because virt_net only updates live and 
+# not permanent if the network is active
+# - name: "NET: reserve ip for myvm"
+#   virt_net:
+#     name: "{{ virt_net_name }}"
+#     command: modify
+#     xml: "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+#   ignore_errors: true
+
+- name: "NET: Reserved ip for myvm"
+  command: >-
+    virsh net-update {{ virt_net_name }}
+    modify ip-dhcp-host
+    "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+  become: true
 
 - name: "NET: Check directory for dnsmasq hosts file"
   file:

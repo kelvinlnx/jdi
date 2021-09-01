@@ -6,6 +6,7 @@
     virsh net-update {{ virt_net_name }}
     delete ip-dhcp-host
     "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+  ignore_errors: true
   become: true
 
 - name: "NET: create dnsmasq entry for {{ myvm.name }}"
