@@ -18,12 +18,20 @@
 #     xml: "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
 #   ignore_errors: true
 
-- name: "NET: Reserved ip for myvm"
-  command: >-
-    virsh net-update {{ virt_net_name }}
-    modify ip-dhcp-host
-    "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
-  become: true
+- block:
+  - name: "NET: Reserved ip for myvm(add)"
+    command: >-
+      virsh net-update {{ virt_net_name }}
+      add ip-dhcp-host
+      "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+    become: true
+  rescue:
+  - name: "NET: Reserved ip for myvm (modify)"
+    command: >-
+      virsh net-update {{ virt_net_name }}
+      modify ip-dhcp-host
+      "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+    become: true
 
 - name: "NET: Check directory for dnsmasq hosts file"
   file:
