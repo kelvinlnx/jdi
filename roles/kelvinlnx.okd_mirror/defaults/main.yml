@@ -22,7 +22,7 @@ tmp_host:
     data: /srv/registry/data
 
 tmp_cert:
-- fqdn: &reg_lname myreg.tmp.example.com
+  fqdn: &reg_lname myreg.tmp.example.com
   files:
     key: "{{ cert_dir }}/{{ tmp_reg_lname }}.key"
     crt: "{{ cert_dir }}/{{ tmp_reg_lname }}.crt"
