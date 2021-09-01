@@ -47,6 +47,7 @@
     src: 99-domain.sh.j2
     dest: /etc/NetworkManager/dispatcher.d/99-{{ virt_net_name }}.sh
     mode: '0755'
+  become: true
     
 - name: create directory to hold dns records
   file:
