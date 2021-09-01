@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export LC_ALL=C
+
+systemd-resolv --interface {{ virt_net_name }} --set-dns {{ default_net_ip }} --set-domain ~{{ virt_net_domain }}
+
+exit 0

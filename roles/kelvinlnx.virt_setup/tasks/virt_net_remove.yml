@@ -12,13 +12,16 @@
       name: "{{ virt_net_name }}"
       command: undefine
     changed_when: true
-
-  - name: Remove dns hosts file
-    file:
-      path: /usr/local/etc/domains/{{ virt_net_domain }}
-      state: absent
-    become: true
   rescue:
   - name: Info
     debug:
       msg: "{{ virt_net_name }} doesn't exists" 
+
+- name: Remove dns hosts file
+  file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+  - /usr/local/etc/domains/{{ virt_net_domain }}
+  - /etc/NetworkManager/dispatcher.d/99-{{ virt_net_name }}.sh

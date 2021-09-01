@@ -1,5 +1,20 @@
+2021-09-01	Kelvin Lai
+	Made use of systemd-resolve to lookup okd network dns
+
+	* roles/kelvinlnx.virt_setup/tasks/virt_net_create (feature add)
+	    - added tasks to copy template to /etc/NetworkManager/dispatcher.d
+		- remove block to enable facts usage in template
+
+	* roles/kelvinlnx.virt_setup/templates/99-domain.sh.j2 (new template)
+		- This template will configure systemd-resolve to lookup the new domain created
+
+	* roles/kelvinlnx.virt_setup/tasks/virt_net_remove (feature add)
+		- file cleanup task placed outside rescue block, so that it works even if the network isn't there.
+		- modified tasks to remove the corresponding templates added in virt_net_create
+
 
 2021-08-31	Kelvin Lai
+
 	Configured extra dnsmasq options to enable secure and forwarding.
 
 	* roles/kelvinlnx.virt_setup

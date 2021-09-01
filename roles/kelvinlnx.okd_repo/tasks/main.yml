@@ -136,7 +136,6 @@
     interface: "{{ (ansible_libvirt_networks|json_query( virt_net_name )).bridge }}"
   become: true
   when: "'inactive' not in a_result.stdout"
-#######################################################################TEST WITH AND WITHOUT FIREWALL 
 
 #        -drive file={{ GEN_DIR }}/seed.iso,format=raw,cache=none,if=virtio \
 - name: "VM: Finally installing vm - {{ myvm.name }}"
@@ -201,7 +200,6 @@
     path: ./inventory
     state: directory
 
-#========================================================================TRY AND CHECK
 - name: "POST: generate inventory file"
   ini_file:
     path: ./inventory/hosts
