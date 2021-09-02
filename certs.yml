@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - { role: kelvinlnx.gen_certs, generate_ca: true }
+    - { role: kelvinlnx.gen_certs, cert_domain: tmp.example.com, generate_ca: true }

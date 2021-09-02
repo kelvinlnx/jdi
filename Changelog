@@ -1,5 +1,18 @@
+2021-09-02	Kelvin Lai
+	* roles/kelvinlnx.okd_setup (new role)
+		- create role okd_setup to install openshift in VMs
+
+	* roles/okd_registry/vm_create.yml (bugfix)
+		- added missing --live and --config options to virsh net-update
+
+	* certs.yml (update)
+		- added extra param in invocation example to set domain
+
 2021-09-01	Kelvin Lai
-	Made use of systemd-resolve to lookup okd network dns. Fixed all bugs in both roles.
+	Made use of systemd-resolve to lookup okd network dns. Completed roles creation for the project. Fixed all bugs in all roles.
+
+	* roles/kelvinlnx.okd_mirror (new role)
+		- created role okd_mirror from genrepo.yaml playbook
 
 	* roles/kelvinlnx.gen_certs (new role)
 		- created role from genkey.yaml playbook

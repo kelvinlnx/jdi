@@ -1,0 +1,457 @@
+---
+# tasks file for kelvinlnx.okd_setup
+- name: "INIT: Get network info"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: get_xml
+  register: a_result
+
+- name: "INIT: set net_gw fact"
+  set_fact:
+    net_gw: "{{ (a_result.get_xml | regex_search(\"ip.*address='([0-9\\.]*)'\",\"\\1\")) | first }}"
+
+- name: "INIT: Generate var file"
+  template:
+    src: node_list.j2
+    dest: "{{ gen_dir }}/node_list"
+
+- name: "INIT: Include node_list variables"
+  include_vars: "{{ gen_dir }}/node_list"
+
+# virt_net can't set permanent when network is active
+# convert to manual setting
+# - name: "DHCP: Add entry for {{ item.name }}"
+#   virt_net:
+#     name: default
+#     command: modify
+#     xml: "<host mac='{{ item.mac }}' name='{{ item.name }}' ip='{{ item.ip }}'/>"
+#   loop: "{{ lookup( 'vars', tmp_host.name ) }}"
+#   become: true
+- name: "NETWORK: Reserve IP for openshift cluster"
+  include_tasks: reserve_ip.yml
+  loop: "{{ node_list }}"
+
+- name: "NETWORK: Add DNS names for openshift cluster"
+  vars:
+    tmp_list:
+    - ip: "{{ net_gw }}"
+      name: api
+    - ip: "{{ net_gw }}"
+      name: api-int
+  lineinfile:
+    path: /usr/local/etc/domains/""
+    line: "{{ item.ip }}\t{{ item.name }}"
+  loop: "{{ node_list + tmp_list }}"
+
+- name: "NETWORK: Backup {{ virt_net_name }} xml"
+  shell: virsh net-dumpxml {{ virt_net_name }} > {{ gen_dir }}/{{ virt_net_name }}.xml
+
+# need to undefine network, define from xml and restart libvirtd
+- name: "NETWORK: Configure network params in {{ virt_net_name }}.xml"
+  xml:
+    path: "{{ gen_dir }}/{{ virt_net_name }}.xml"
+    xpath: "{{ item.xpath }}"
+    attribute: "{{ item.attr|default(omit) }}"
+    value: "{{ item.value|default(omit) }}"
+    namespaces:
+      a: http://libvirt.org/schemas/network/dnsmasq/1.0
+    pretty_print: true
+  register: result
+  loop:
+    - xpath: /network/ip/tftp
+      attr: root
+      value: /srv/tftp
+    - xpath: /network/ip/dhcp/bootp
+      attr: file
+      value: pxelinux.0
+    - xpath: /network/a:options/a:option[@value='dhcp-option=option:ntp-server,{{ net_gw }}']
+    - xpath: /network/a:options/a:option[@value='address=/apps.{{ virt_net_domain }}/{{ net_gw }}']
+
+- name: "NETWORK: Destroy {{ virt_net_name }}"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: destroy
+
+- name: "NETWORK: Undefine {{ virt_net_name }}"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: undefine
+
+- name: "NETWORK: Define {{ virt_net_name }} from {{ gen_dir }}/{{ virt_net_name }}.xml"
+  vars:
+    filename: "{{ gen_dir }}/{{ virt_net_name }}.xml"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    xml: "{{ lookup( 'file', filename ) }}"
+    command: define
+
+- name: "NETWORK: Start {{ virt_net_name }}"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: create
+
+- name: "NETWORK: Enable {{ virt_net_name }} autostart"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    autostart: True
+
+- name: "SYSTEM: Restart libvirtd service"
+  service:
+    name: libvirtd
+    state: restarted
+
+- name: "SYSTEM: Update repository cache"
+  apt:
+    update_cache: yes
+
+- name: "SYSTEM: Upgrade all packages"
+  apt:
+    upgrade: full
+
+# install chrony, tftp, haproxy servers
+- name: "SYSTEM: Install packages"
+  apt:
+    name:
+    - tftpd-hpa
+    - haproxy
+    - chrony
+    - pxelinux
+    - syslinux
+    state: latest
+  
+- name: "PXELINUX: Populate tftp and pxelinux dir"
+  copy:
+    src: "{{ item }}"
+    dest: /srv/tftp
+    remote_src: yes
+  loop:
+    - /usr/lib/PXELINUX/
+    - /usr/lib/syslinux/modules/bios/
+  become: true
+
+- name: "PXELINUX: Configure pxelinux"
+  copy:
+    src: tftp/
+    dest: /srv/tftp
+  become: true
+
+- name: "PXELINUX: Set default menu"
+  template:
+    src: default.j2
+    dest: /srv/tftp/pxelinux.cfg/default
+  loop:
+    - name: master
+  become: true
+
+- name: "PXELINUX: Copy openshift nodes ignition over"
+  template:
+    src: default.j2
+    dest: /srv/tftp/pxelinux.cfg/01-{{ item.mac | regex_replace( ':', '-' ) }}
+  loop: "{{ node_list }}"
+  become: true
+
+- name: "HAPROXY: Configure haproxy"
+  template:
+    src: haproxy.j2
+    dest: /etc/haproxy/haproxy.cfg
+  become: true
+
+- name: "CHRONY: Configure chrony"
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+  become: true
+
+- name: "SYSTEM: Restart services"
+  service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+  - haproxy
+  - chrony
+  become: true
+
+- name: "OKD: Cleanup directory"
+  file:
+    path: "{{ gen_dir }}/openshift/{{ virt_net_domain }}"
+    state: absent
+
+- name: "OKD: Initialize directory"
+  file:
+    path: "{{ gen_dir }}/openshift/{{ virt_net_domain }}"
+    state: directory
+    mode: "0755"
+
+- name: "OKD: Configure install-config.yaml"
+  template:
+    src: install-config.yaml.j2
+    dest: ./generated/openshift/{{ virt_net_domain }}/install-config.yaml
+
+#        overrides:
+#        - kind: Deployment
+#          group: apps/v1
+#          name: insights-operator
+#          namespace: openshift-insights
+#          unmanaged: true
+#        - kind: ClusterOperator
+#          group: config.openshift.io/v1
+#          name: insights
+#          namespace: ""
+#          unmanaged: true
+#        - kind: Deployment
+#          name: cluster-monitoring-operator
+#          namespace: openshift-monitoring
+#          unmanaged: true
+#          group: apps/v1
+#        - kind: ClusterOperator
+#          name: monitoring
+#          namespace: ""
+#          unmanaged: true
+#          group: config.openshift.io/v1
+#      " >> ./generated/openshift/poc/manifests/cvo-overrides.yaml
+- name: generate manifests and ignition files
+  raw: |
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=registry.example.com:5000/ocp4/openshift4:4.6.31-x86_64
+    ./files/openshift-install create manifests --dir ./generated/openshift/{{ virt_net_domain }}
+    echo "  overrides:
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: cloud-credential
+        namespace: \"\"
+        unmanaged: true
+      - kind: Deployment
+        group: apps/v1
+        name: cluster-monitoring-operator
+        namespace: openshift-monitoring
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cluster-samples-operator
+        namespace: openshift-cluster-samples-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: openshift-samples
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: monitoring
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: kube-storage-version-migrator-operator
+        namespace: openshift-kube-storage-version-migrator-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: kube-storage-version-migrator
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: insights-operator
+        namespace: openshift-insights
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: insights
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cloud-credential-operator
+        namespace: openshift-cloud-credential-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: cloud-credential
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cluster-storage-operator
+        namespace: openshift-cluster-storage-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: storage
+        namespace: \"\"
+        unmanaged: true
+    #  - group: apps/v1
+    #    kind: Deployment
+    #    name: cluster-baremetal-operator
+    #    namespace: openshift-machine-api
+    #    unmanaged: true
+    #  - group: config.openshift.io/v1
+    #    kind: ClusterOperator
+    #    name: baremetal
+    #    namespace: \"\"
+    #    unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cluster-autoscaler-operator
+        namespace: openshift-machine-api
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: cluster-autoscaler
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: csi-snapshot-controller-operator
+        namespace: openshift-cluster-storage-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: csi-snapshot-controller
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: machine-api
+        namespace: \"\"
+        unmanaged: true
+    #  - group: config.openshift.io/v1
+    #    kind: ClusterOperator
+    #    name: machine-config
+    #    namespace: \"\"
+    #    unmanaged: true
+    #  - group: apps/v1
+    #    kind: Deployment
+    #    name: machine-config-operator
+    #    namespace: openshift-machine-config-operator
+    #    unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: machine-api-operator
+        namespace: openshift-machine-api
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: olm-operator
+        namespace: openshift-operator-lifecycle-manager
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: catalog-operator
+        namespace: openshift-operator-lifecycle-manager
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: operator-lifecycle-manager
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: operator-lifecycle-manager-catalog
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: operator-lifecycle-manager-packageserver
+        namespace: \"\"
+        unmanaged: true
+    " >> ./generated/openshift/{{ virt_net_domain }}/manifests/cvo-overrides.yaml
+    cat ./generated/openshift/{{ virt_net_domain }}/manifests/cvo-overrides.yaml
+
+    ./files/openshift-install create ignition-configs --dir ./generated/openshift/{{ virt_net_domain }}
+  register: a_result
+- debug: var=a_result
+
+- name: deploy ignition files
+  copy:
+    src: "{{ gen_dir }}/openshift/{{ virt_net_domain }}/{{ item }}"
+    dest: /var/www/html/inst/{{ item }}.{{ virt_net_domain }}
+    mode: "0644"
+  loop:
+  - bootstrap.ign
+  - master.ign
+  - worker.ign
+  delegate_to: "{{ registry_name }}"
+
+# lazy way to refer to bootstrap mac ####################################################
+                 #--memory 16384 \
+- name: Install bootstrap
+  shell: |
+    qemu-img create -f qcow2 /var/lib/libvirt/images/bootstrap.qcow2 25G
+    virt-install --name bootstrap \
+                 --memory 10240 \
+                 --cpu host-passthrough \
+                 --vcpus 2 \
+                 --pxe \
+                 --disk /var/lib/libvirt/images/bootstrap.qcow2 \
+                 --network network=default,mac={{node_list[0].mac}} \
+                 --hvm --virt-type kvm \
+                 --arch x86_64 \
+                 --machine pc-q35-4.2 \
+                 --os-variant rhel8.0 \
+                 --noautoconsole \
+                 --wait -1
+  become: true
+
+- name: Pause until bootstrap ready
+  uri:
+    url: "https://api.{{ virt_net_domain }}:6443"
+    status_code: 403
+    validate_certs: false
+    method: GET
+  register: _result
+  until: _result.status == 403
+  retries: 80 # 20(min) * 60(sec/min) * 1/15(times/sec) = 80
+  delay: 15 # Every 10 seconds
+
+                 #--memory 16384 \
+- name: Install masters
+  vars:
+    item_string: "[?name=='{{ item }}'].mac"
+  shell: |
+    qemu-img create -f qcow2 /var/lib/libvirt/images/{{ item }}.qcow2 25G
+    virt-install --name {{ item }} \
+                 --memory 10240 \
+                 --cpu host-passthrough \
+                 --vcpus 4 \
+                 --pxe \
+                 --disk /var/lib/libvirt/images/{{ item }}.qcow2 \
+                 --network network=default,mac={{ node_list | json_query(item_string) | join() }} \
+                 --hvm --virt-type kvm \
+                 --arch x86_64 \
+                 --machine pc-q35-4.2 \
+                 --os-variant rhel8.0 \
+                 --noautoconsole \
+                 --wait -1
+  loop:
+    - master0
+    - master1
+    - master2
+
+- name: Wait for bootstrap complete
+  command: ./files/openshift-install wait-for bootstrap-complete --dir ./generated/openshift/{{ virt_net_domain }}
+  register: cmd_result
+  delegate_to: localhost
+  until: not cmd_result.failed
+  retries: 2
+
+- name: Output of bootstrap wait command
+  debug:
+    var: cmd_result
+
+- name: Delete Bootstrap
+  shell: |
+    virsh destroy bootstrap
+    virsh undefine bootstrap
+    rm /var/lib/libvirt/images/bootstrap.qcow2
+  become: true
+
+- name: Wait for install-complete
+  command: ./files/openshift-install wait-for install-complete --dir ./generated/openshift/{{ virt_net_domain }}
+  register: cmd_result
+  delegate_to: localhost
+  until: not cmd_result.failed
+  retries: 2
+
+- name: Result of wait
+  debug:
+    var: cmd_result

@@ -24,6 +24,7 @@
       virsh net-update {{ virt_net_name }}
       add ip-dhcp-host
       "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+      --live --config
     become: true
   rescue:
   - name: "NET: Reserved ip for myvm (modify)"
@@ -31,6 +32,7 @@
       virsh net-update {{ virt_net_name }}
       modify ip-dhcp-host
       "<host mac='{{ reg_mac }}' name='{{ myvm.name }}' ip='{{ reg_ip }}'/>"
+      --live --config
     become: true
 
 - name: "NET: Check directory for dnsmasq hosts file"

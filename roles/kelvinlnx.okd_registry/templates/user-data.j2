@@ -25,7 +25,7 @@ autoinstall:
     preserve_sources_list: false
     primary:
       - arches: [default]
-        uri: http://192.168.122.2/mirror/ubuntu
+        uri: http://registry.example.com/mirror/ubuntu
     sources:
       devel:kubic:libcontainers:stable:
         source: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /"
@@ -91,6 +91,7 @@ autoinstall:
   packages:
     - apache2
     - podman
+
   user-data:
     timezone: Asia/Kuala_Lumpur
     disable_root: false
@@ -101,7 +102,7 @@ autoinstall:
     power_state:
       mode: poweroff
     runcmd:
-      - echo testing > /etc/great
+      - echo apache2 podman > /root/installed-pkgs
   late-commands:
     - "echo '{{ myvm.username }} ALL=(ALL) NOPASSWD: ALL' > /target/etc/sudoers.d/{{ myvm.username }}"
 #    - ". /etc/os-release; echo version is $VERSION_ID gotit > /target/etc/hahaha"

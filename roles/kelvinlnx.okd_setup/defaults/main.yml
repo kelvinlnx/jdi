@@ -1,0 +1,6 @@
+---
+# defaults file for kelvinlnx.okd_setup
+virt_net_name: okd
+virt_net_domain: example.com
+gen_dir: ./generated
+
