@@ -54,7 +54,7 @@
     - master2
 
 - name: Wait for bootstrap complete
-  command: ./files/openshift-install wait-for bootstrap-complete --dir ./generated/openshift/{{ virt_net_domain }}
+  command: {{ okd_installer }} wait-for bootstrap-complete --dir ./generated/openshift/{{ virt_net_domain }}
   register: cmd_result
   delegate_to: localhost
   until: not cmd_result.failed
@@ -72,7 +72,7 @@
   become: true
 
 - name: Wait for install-complete
-  command: ./files/openshift-install wait-for install-complete --dir ./generated/openshift/{{ virt_net_domain }}
+  command: {{ okd_installer }} wait-for install-complete --dir ./generated/openshift/{{ virt_net_domain }}
   register: cmd_result
   delegate_to: localhost
   until: not cmd_result.failed

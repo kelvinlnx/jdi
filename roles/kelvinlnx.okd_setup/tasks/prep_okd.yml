@@ -49,8 +49,8 @@
 #      " >> ./generated/openshift/poc/manifests/cvo-overrides.yaml
 - name: generate manifests and ignition files
   raw: |
-    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=registry.example.com:5000/ocp4/openshift4:4.6.31-x86_64
-    ./files/openshift-install create manifests --dir ./generated/openshift/{{ virt_net_domain }}
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ registry_name }}:5000/ocp4/openshift4:4.6.31-x86_64
+    {{ okd_installer }} create manifests --dir ./generated/openshift/{{ virt_net_domain }}
     echo "  overrides:
       - group: config.openshift.io/v1
         kind: ClusterOperator
@@ -195,7 +195,7 @@
     " >> ./generated/openshift/{{ virt_net_domain }}/manifests/cvo-overrides.yaml
     cat ./generated/openshift/{{ virt_net_domain }}/manifests/cvo-overrides.yaml
 
-    ./files/openshift-install create ignition-configs --dir ./generated/openshift/{{ virt_net_domain }}
+    {{ okd_installer }} create ignition-configs --dir ./generated/openshift/{{ virt_net_domain }}
   register: a_result
 - debug: var=a_result
 

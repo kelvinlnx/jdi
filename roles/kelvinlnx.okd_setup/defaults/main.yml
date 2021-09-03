@@ -1,5 +1,6 @@
 ---
 # defaults file for kelvinlnx.okd_setup
+okd_installer: ~/Downloads/openshift-install
 virt_net_name: okd
 virt_net_domain: example.com
 master_nodes: 3                 # do not change, rhocp only supports 3

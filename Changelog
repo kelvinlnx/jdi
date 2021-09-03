@@ -1,6 +1,7 @@
 2021-09-03	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (rewrite functions)
 		- optimise playbook and fix bugs
+		- parameterised openshift-installer command
 
 	* roles/kelvinlnx.virt_setup/tasks/main.yml (feature add)
 		- added prereq python3-lxml package installation
