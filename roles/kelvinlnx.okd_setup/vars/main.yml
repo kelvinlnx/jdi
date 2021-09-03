@@ -14,7 +14,7 @@ node_list: >-
   {%- for value in range(0,master_nodes)                                  -%}
   {%-   set node_item=
         { 'name': 'master' + value|string,
-    'ip': net_pt + '.' + (value+10)|string,
+    'ip': net_pt + (value+10)|string,
     'mac': (net_pt + value|string) | hash('md5') |
            regex_replace("^(..)(..)(..).*", "52:54:00:\\1:\\2:\\3") }     -%} 
   {%-   set _ = results.append(node_item)                                 -%}
@@ -30,9 +30,9 @@ reserve_ip_list: >-
             'value':     value.name }                                     -%}
   {%-   set _ = results.append(node_item)                                 -%}
   {%-   set node_item =
-          { 'xpath': '/network/ip/dhcp/host[@mac=\''+value.mac+'\']',
+          { 'xpath':     '/network/ip/dhcp/host[@mac=\''+value.mac+'\']',
             'attribute': 'ip',
-            'value': value.ip }                                           -%}
+            'value':     value.ip }                                       -%}
   {%-   set _ = results.append(node_item)                                 -%}
   {%- endfor                                                              -%}
   {{ results }}
