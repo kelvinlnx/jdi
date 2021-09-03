@@ -17,10 +17,8 @@
 
 - name: "OKD: Assert rule"
   assert:
-    that: b_result.rc != 0
+    that: not b_result.failed
     fail_msg: "Generate your ssh keypair (rsh) and retry"
-
-- fail: msg=testing123
 
 - name: "OKD: Configure install-config.yaml"
   template:
