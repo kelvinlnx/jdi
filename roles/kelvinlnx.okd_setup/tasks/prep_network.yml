@@ -40,7 +40,7 @@
   xml:
     path: "{{ gen_dir }}/{{ virt_net_name }}_net.xml"
     xpath: "{{ item.xpath }}"
-    attribute: "{{ item.attr|default(omit) }}"
+    attribute: "{{ item.attribute|default(omit) }}"
     value: "{{ item.value|default(omit) }}"
     namespaces:
       a: http://libvirt.org/schemas/network/dnsmasq/1.0
