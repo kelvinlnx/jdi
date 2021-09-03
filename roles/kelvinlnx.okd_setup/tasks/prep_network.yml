@@ -22,6 +22,8 @@
   loop: "{{ node_list + tmp_list }}"
   become: True
 
+- debug: vars=reserve_ip_list
+- fail: msg=testing
 
 # need to undefine network, define from xml and restart libvirtd
 - name: "NETWORK: Configure network params in {{ virt_net_name }}.xml"
