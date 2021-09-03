@@ -46,6 +46,10 @@
   loop: "{{ mod_list + reserve_ip_list }}"
   register: result
 
+# services need to be called first to prepare the /tftp service or else network will fail to start
+- name: "SERVICE: Prep services"
+  import_tasks: prep_services.yml
+
 - name: "NETWORK: Destroy {{ virt_net_name }}"
   virt_net:
     name: "{{ virt_net_name }}"
