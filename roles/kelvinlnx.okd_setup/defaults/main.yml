@@ -3,6 +3,7 @@
 virt_net_name: okd
 virt_net_domain: example.com
 master_nodes: 3                 # do not change, rhocp only supports 3
+worker_nodes: 0
 ca_crt: "{{ gen_dir }}/private/myca.{{ virt_net_domain }}.crt"
 
 gen_dir: ./generated
