@@ -1,5 +1,11 @@
 ---
 # tasks file for kelvinlnx.virt_setup
+- name: "SYSTEM: Install python3-lxml package"
+  apt:
+    name: python3-lxml
+    state: latest
+  become: true
+  
 - name: "NET: Create the virtual network {{ virt_net_name }}"
   include_tasks: virt_net_create.yml
   when: not virt_net_remove | bool
