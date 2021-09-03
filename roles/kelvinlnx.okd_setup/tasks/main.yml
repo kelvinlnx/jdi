@@ -1,13 +1,13 @@
 ---
 # tasks file for kelvinlnx.okd_setup
 - name: "NETWORK: Prep network"
-  import_task: prep_network.yml
+  import_tasks: prep_network.yml
 
 - name: "SERVICE: Prep services"
-  import_task: prep_services.yml
+  import_tasks: prep_services.yml
 
 - name: "OKD: Prep OpenShift Configs"
-  import_task: prep_okd.yml
+  import_tasks: prep_okd.yml
 
 - name: "INSTALL: Install OKD"
-  import_task: install_okd.yml
+  import_tasks: install_okd.yml
