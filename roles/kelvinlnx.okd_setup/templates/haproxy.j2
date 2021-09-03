@@ -56,7 +56,7 @@ frontend machine_config
 backend machine_config_backend
 	balance roundrobin
 	mode tcp
-    {% for data in node_list ) %}
+    {% for data in node_list %}
 	server {{ data.name }} {{ data.ip }}:22623 check
 	{% endfor %}
 # ---------------------------------------------------------------------
