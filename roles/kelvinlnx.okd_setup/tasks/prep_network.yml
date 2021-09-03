@@ -22,18 +22,15 @@
   loop: "{{ node_list + tmp_list }}"
   become: True
 
-- debug: vars=reserve_ip_list
-- fail: msg=testing
-
 # need to undefine network, define from xml and restart libvirtd
 - name: "NETWORK: Configure network params in {{ virt_net_name }}.xml"
   vars:
     mod_list:
     - xpath: /network/ip/tftp
-      attr: root
+      attribute: root
       value: /srv/tftp
     - xpath: /network/ip/dhcp/bootp
-      attr: file
+      attribute: file
       value: pxelinux.0
     - xpath: /network/a:options/a:option[@value='dhcp-option=option:ntp-server,{{ net_gw }}']
     - xpath: /network/a:options/a:option[@value='address=/apps.{{ virt_net_domain }}/{{ net_gw }}']
