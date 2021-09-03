@@ -1,10 +1,12 @@
 - name: "SYSTEM: Update repository cache"
   apt:
     update_cache: yes
+  become: True
 
 - name: "SYSTEM: Upgrade all packages"
   apt:
     upgrade: full
+  become: True
 
 # install chrony, tftp, haproxy servers
 - name: "SYSTEM: Install packages"
@@ -16,6 +18,7 @@
     - pxelinux
     - syslinux
     state: latest
+  become: True
   
 - name: "PXELINUX: Populate tftp and pxelinux dir"
   copy:
