@@ -1,3 +1,10 @@
+2021-09-03	Kelvin Lai
+	* roles/kelvinlnx.okd_setup (rewrite functions)
+		- optimise playbook and fix bugs
+
+	* roles/kelvinlnx.virt_setup/tasks/main.yml (feature add)
+		- added prereq python3-lxml package installation
+
 2021-09-02	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (new role)
 		- create role okd_setup to install openshift in VMs

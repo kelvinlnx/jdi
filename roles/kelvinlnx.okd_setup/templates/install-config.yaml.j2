@@ -16,10 +16,10 @@ metadata:
   name: {{ virt_net_domain }}
 imageContentSources:
 - mirrors:
-  - registry.example.com:5000/ocp4/openshift4
+  - {{ registry_name }}:5000/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - registry.example.com:5000/ocp4/openshift4
+  - {{ registry_name }}:5000/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 networking:
   clusterNetwork:
@@ -30,41 +30,6 @@ networking:
   - 172.30.0.0/16
 platform:
   none: {}
-sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDHD9KVM3wq0qtTrXRPVvw49RDikRy1ELyomzwbLELTFNPURLKtK/NRTSOA9SOt60nlVcHXvnYHE/g+Gx6eZoUD3vu+AccYgJG9VHZhRLnTJS6r5wZ9Jp5fAAbT+MUJ67jXs+fV68mudeRzY8zU7eM/AKrMZOi04el9NQxIrAp0sR4zqLumROGv5tdK50iTrCme4LhLOFsTNwnvr0LASo4tDlWmzCJRLybPVjKcHXQgX6OQt+RUVnjbE84FWGiaYMi53l3Kh9fFsGWe/vy2iSzf7zvRgRCSDxxPB1k81WzQT2f+Hknkx43SMdVywrA+aVk5WVy34wihnlJ2x0apTDNIXUjaReTGaAFD1VPx8rj8EUz1bDfEUUBjmoRgX2TyBf2UAdXwQneNnM6heXiwhWaeQJ92NDWUBg8Bbs/H7l7T9qjmb5ivu/ZRAVRUtz9jkYJXhthUMlSEAYWTW1IxjbTZfZMJjdYbddEOY2YXKybfsJX2QEzXsFPraoq4vPpy5Ss= example.com'
-additionalTrustBundle: |
-  -----BEGIN CERTIFICATE-----
-  MIIF/zCCA+egAwIBAgIURnsBsXbaCwhE7uUtQE2Ti2FojXYwDQYJKoZIhvcNAQEL
-  BQAwgY4xCzAJBgNVBAYTAk1ZMREwDwYDVQQIDAhTZWxhbmdvcjEQMA4GA1UEBwwH
-  UHVjaG9uZzEYMBYGA1UECgwPTVlSQyBFbnRlcnByaXNlMQswCQYDVQQLDAJJVDET
-  MBEGA1UEAwwKS2VsdmluIExhaTEeMBwGCSqGSIb3DQEJARYPa2VsdmluQG15cmMu
-  Yml6MB4XDTIxMDYxNDEzMDYwOVoXDTMxMDYxMjEzMDYwOVowgY4xCzAJBgNVBAYT
-  Ak1ZMREwDwYDVQQIDAhTZWxhbmdvcjEQMA4GA1UEBwwHUHVjaG9uZzEYMBYGA1UE
-  CgwPTVlSQyBFbnRlcnByaXNlMQswCQYDVQQLDAJJVDETMBEGA1UEAwwKS2Vsdmlu
-  IExhaTEeMBwGCSqGSIb3DQEJARYPa2VsdmluQG15cmMuYml6MIICIjANBgkqhkiG
-  9w0BAQEFAAOCAg8AMIICCgKCAgEAr8fzeYfiLZVExwwAeRxxpHA2bZ8Pejvn3wWM
-  O381NjxY2TeTemTAEWSJGxl32inlsGUaLbIb/0+l4OFu2cafArecGQ3vJfV37jO2
-  bdXP++IBlG0xa0/J+1QO0NV//IuH1iXnzftV4Yo3KDzeZAF9Np1f804lOB2QxVHK
-  Cnulzp/KlniwcBSEilFaNe3opxwJN6kgqeJ47ZSTaDKugvoVrUs/nztBI0IbhYBn
-  7BTLMEqjTMd9XaGpVCqC987Oz7p4IjnR6LO4dwOATuz7ir16QMUzM+YfSXkkDbV1
-  bO2goga/wjbNkDUw+9zwRdhLtFF3Tnb/vzRFCs6gZjvZGkntojS9CBhERkqfV2bj
-  TRuMogTqSYG9+FB6F2Wr0FD/6u8oswvQqeDWZ/hwJyfivam6kQ/tVBjXPBwrTqa1
-  KOh/5Z7Qu+/JyuOGvrK4PWH2eL6o8sCDtCKK1/AA4rlr+/15DvjIcb9KlzogmerK
-  fqREtcxrZz2SnV1d2OihbLny0HKA3eiMCOhOOIHD4dVNV8j4qLKnOmYwa81R6XSf
-  StoX1Vw/whgyKg2lMYhaGcVF020FBbOIFRmdCTe6r3Wj58Mv1wE1GfDenlbxaUhy
-  Nm5/009QSs1uVM2wEE70BDHwAwQOzTZT+nxSHrUnlnfS515LPM4MczFlLt/hu0CF
-  5Yv4U0sCAwEAAaNTMFEwHQYDVR0OBBYEFJ2gHIndfzVEsrgYFzGtZcZrvH6/MB8G
-  A1UdIwQYMBaAFJ2gHIndfzVEsrgYFzGtZcZrvH6/MA8GA1UdEwEB/wQFMAMBAf8w
-  DQYJKoZIhvcNAQELBQADggIBABS06Ah9AP9IHQnynsACoPT8L1VSwJNi9x3AVaIT
-  NuC6vKMc47wTWOumP4eibqS2VZmoPx/L+TlNy0xZntLqHquatNUiItnTJCeKN0B/
-  A0etYu0Nz03WKrtQXdbhEKrOgZlbHr0TekuHmKFycTNuu5VkgUgNnlijMNJ1bYiV
-  Gg87s8IaCUAyHq9rPNFCNS1/JsDFFLsRHX5Dt65wwJNIxWWZuwYWPZMerO9nrbiM
-  JwXtaREMQqMCSYzXtpda4krJ0CgvoHqfUZpNzMe7tvOT3ea0cqkqkpd4QHr399Cc
-  HXw1QqPWIBz59zJEHLMcjykXGm/pyQx57HizSmpt9KwLtXbMsKk638g0BAs9yYjC
-  riFqoDya4mEFUVPSWHIVgtMQgue5pmG14xijv3v01f1xXBAX8zOHDbJmDkKWFtY3
-  MDzN3oYBN6LCPhn5wKFdWesk5Yiq8TKIF90PKtNiE5aZV69lL9gbR8JbfSNSpZVi
-  Ja8MVVAVC5F23ATBYlaCgSC+YFNufvOqK6LEs/INJS6TwGBYgZES7dNU2KNCj/BH
-  EKvT2DNRhCt6DKSlOq3H6TLE0gKQZXhbmSkrMse2k8Z3OTSOIm7o5pTselVFdble
-  nMqGDkBuBZNd7rYt1q51uDiuak3IZobXRPjXORpefZ/7+vpMqdWN1wSof21WDcMQ
-  UN1p
-  -----END CERTIFICATE-----
-pullSecret: '{"auths":{"registry.example.com:5000":{"auth":"cmVndXNlcjpyZWd1c2Vy","email":"kelvinlnx@gmail.com"}}}'
+sshKey: '{{ user_pub_key }}'
+additionalTrustBundle: "{{ lookup('file', ca_crt, errors='ignore') }}"
+pullSecret: '{"auths":{"{{ registry_name }}:5000":{"auth":"{{ registry_user_info | b64encode }}","email":"{{ registry_user_email }}"}}}'

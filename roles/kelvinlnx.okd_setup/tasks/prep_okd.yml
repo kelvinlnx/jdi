@@ -1,0 +1,213 @@
+- name: "OKD: Cleanup directory"
+  file:
+    path: "{{ gen_dir }}/openshift/{{ virt_net_domain }}"
+    state: absent
+
+- name: "OKD: Initialize directory"
+  file:
+    path: "{{ gen_dir }}/openshift/{{ virt_net_domain }}"
+    state: directory
+    mode: "0755"
+
+- name: "OKD: Get user public key"
+  set_fact:
+    user_pub_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+  register: b_result
+  ignore_errors: True
+
+- name: "OKD: Assert rule"
+  assert:
+    that: b_result.rc != 0
+    fail_msg: "Generate your ssh keypair (rsh) and retry"
+
+- fail: msg=testing123
+
+- name: "OKD: Configure install-config.yaml"
+  template:
+    src: install-config.yaml.j2
+    dest: ./generated/openshift/{{ virt_net_domain }}/install-config.yaml
+
+#        overrides:
+#        - kind: Deployment
+#          group: apps/v1
+#          name: insights-operator
+#          namespace: openshift-insights
+#          unmanaged: true
+#        - kind: ClusterOperator
+#          group: config.openshift.io/v1
+#          name: insights
+#          namespace: ""
+#          unmanaged: true
+#        - kind: Deployment
+#          name: cluster-monitoring-operator
+#          namespace: openshift-monitoring
+#          unmanaged: true
+#          group: apps/v1
+#        - kind: ClusterOperator
+#          name: monitoring
+#          namespace: ""
+#          unmanaged: true
+#          group: config.openshift.io/v1
+#      " >> ./generated/openshift/poc/manifests/cvo-overrides.yaml
+- name: generate manifests and ignition files
+  raw: |
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=registry.example.com:5000/ocp4/openshift4:4.6.31-x86_64
+    ./files/openshift-install create manifests --dir ./generated/openshift/{{ virt_net_domain }}
+    echo "  overrides:
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: cloud-credential
+        namespace: \"\"
+        unmanaged: true
+      - kind: Deployment
+        group: apps/v1
+        name: cluster-monitoring-operator
+        namespace: openshift-monitoring
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cluster-samples-operator
+        namespace: openshift-cluster-samples-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: openshift-samples
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: monitoring
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: kube-storage-version-migrator-operator
+        namespace: openshift-kube-storage-version-migrator-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: kube-storage-version-migrator
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: insights-operator
+        namespace: openshift-insights
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: insights
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cloud-credential-operator
+        namespace: openshift-cloud-credential-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: cloud-credential
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cluster-storage-operator
+        namespace: openshift-cluster-storage-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: storage
+        namespace: \"\"
+        unmanaged: true
+    #  - group: apps/v1
+    #    kind: Deployment
+    #    name: cluster-baremetal-operator
+    #    namespace: openshift-machine-api
+    #    unmanaged: true
+    #  - group: config.openshift.io/v1
+    #    kind: ClusterOperator
+    #    name: baremetal
+    #    namespace: \"\"
+    #    unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: cluster-autoscaler-operator
+        namespace: openshift-machine-api
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: cluster-autoscaler
+        namespace: \"\"
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: csi-snapshot-controller-operator
+        namespace: openshift-cluster-storage-operator
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: csi-snapshot-controller
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: machine-api
+        namespace: \"\"
+        unmanaged: true
+    #  - group: config.openshift.io/v1
+    #    kind: ClusterOperator
+    #    name: machine-config
+    #    namespace: \"\"
+    #    unmanaged: true
+    #  - group: apps/v1
+    #    kind: Deployment
+    #    name: machine-config-operator
+    #    namespace: openshift-machine-config-operator
+    #    unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: machine-api-operator
+        namespace: openshift-machine-api
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: olm-operator
+        namespace: openshift-operator-lifecycle-manager
+        unmanaged: true
+      - group: apps/v1
+        kind: Deployment
+        name: catalog-operator
+        namespace: openshift-operator-lifecycle-manager
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: operator-lifecycle-manager
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: operator-lifecycle-manager-catalog
+        namespace: \"\"
+        unmanaged: true
+      - group: config.openshift.io/v1
+        kind: ClusterOperator
+        name: operator-lifecycle-manager-packageserver
+        namespace: \"\"
+        unmanaged: true
+    " >> ./generated/openshift/{{ virt_net_domain }}/manifests/cvo-overrides.yaml
+    cat ./generated/openshift/{{ virt_net_domain }}/manifests/cvo-overrides.yaml
+
+    ./files/openshift-install create ignition-configs --dir ./generated/openshift/{{ virt_net_domain }}
+  register: a_result
+- debug: var=a_result
+
+- name: deploy ignition files
+  copy:
+    src: "{{ gen_dir }}/openshift/{{ virt_net_domain }}/{{ item }}"
+    dest: /var/www/html/inst/{{ item }}.{{ virt_net_domain }}
+    mode: "0644"
+  loop:
+  - bootstrap.ign
+  - master.ign
+  - worker.ign
+  delegate_to: "{{ registry_name }}"

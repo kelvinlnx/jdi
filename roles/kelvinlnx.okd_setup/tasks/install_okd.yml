@@ -1,0 +1,83 @@
+# lazy way to refer to bootstrap mac ####################################################
+                 #--memory 16384 \
+- name: Install bootstrap
+  shell: |
+    qemu-img create -f qcow2 /var/lib/libvirt/images/bootstrap.qcow2 25G
+    virt-install --name bootstrap \
+                 --memory 10240 \
+                 --cpu host-passthrough \
+                 --vcpus 2 \
+                 --pxe \
+                 --disk /var/lib/libvirt/images/bootstrap.qcow2 \
+                 --network network=default,mac={{node_list[0].mac}} \
+                 --hvm --virt-type kvm \
+                 --arch x86_64 \
+                 --machine pc-q35-4.2 \
+                 --os-variant rhel8.0 \
+                 --noautoconsole \
+                 --wait -1
+  become: true
+
+- name: Pause until bootstrap ready
+  uri:
+    url: "https://api.{{ virt_net_domain }}:6443"
+    status_code: 403
+    validate_certs: false
+    method: GET
+  register: _result
+  until: _result.status == 403
+  retries: 80 # 20(min) * 60(sec/min) * 1/15(times/sec) = 80
+  delay: 15 # Every 10 seconds
+
+                 #--memory 16384 \
+- name: Install masters
+  vars:
+    item_string: "[?name=='{{ item }}'].mac"
+  shell: |
+    qemu-img create -f qcow2 /var/lib/libvirt/images/{{ item }}.qcow2 25G
+    virt-install --name {{ item }} \
+                 --memory 10240 \
+                 --cpu host-passthrough \
+                 --vcpus 4 \
+                 --pxe \
+                 --disk /var/lib/libvirt/images/{{ item }}.qcow2 \
+                 --network network=default,mac={{ node_list | json_query(item_string) | join() }} \
+                 --hvm --virt-type kvm \
+                 --arch x86_64 \
+                 --machine pc-q35-4.2 \
+                 --os-variant rhel8.0 \
+                 --noautoconsole \
+                 --wait -1
+  loop:
+    - master0
+    - master1
+    - master2
+
+- name: Wait for bootstrap complete
+  command: ./files/openshift-install wait-for bootstrap-complete --dir ./generated/openshift/{{ virt_net_domain }}
+  register: cmd_result
+  delegate_to: localhost
+  until: not cmd_result.failed
+  retries: 2
+
+- name: Output of bootstrap wait command
+  debug:
+    var: cmd_result
+
+- name: Delete Bootstrap
+  shell: |
+    virsh destroy bootstrap
+    virsh undefine bootstrap
+    rm /var/lib/libvirt/images/bootstrap.qcow2
+  become: true
+
+- name: Wait for install-complete
+  command: ./files/openshift-install wait-for install-complete --dir ./generated/openshift/{{ virt_net_domain }}
+  register: cmd_result
+  delegate_to: localhost
+  until: not cmd_result.failed
+  retries: 2
+
+- name: Result of wait
+  debug:
+    var: cmd_result

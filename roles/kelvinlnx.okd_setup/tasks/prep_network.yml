@@ -1,0 +1,79 @@
+- name: "NETWORK: Get network info"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: get_xml
+  register: a_result            # a_result used in vars/main.yml to generate data
+
+- name: "NETWORK: Backup network defination to {{ virt_net_name }}.xml"
+  copy:
+    content: "{{ a_result.get_xml }}"
+    dest: "{{ gen_dir }}/{{ virt_net_name }}_net.xml"
+
+- name: "NETWORK: Add DNS names in /usr/local/etc/domains/{{ virt_net_domain }}"
+  vars:
+    tmp_list:
+    - ip: "{{ net_gw }}"
+      name: api
+    - ip: "{{ net_gw }}"
+      name: api-int
+  lineinfile:
+    path: /usr/local/etc/domains/{{ virt_net_domain }}
+    line: "{{ item.ip }}\t{{ item.name }}"
+  loop: "{{ node_list + tmp_list }}"
+
+
+# need to undefine network, define from xml and restart libvirtd
+- name: "NETWORK: Configure network params in {{ virt_net_name }}.xml"
+  vars:
+    mod_list:
+    - xpath: /network/ip/tftp
+      attr: root
+      value: /srv/tftp
+    - xpath: /network/ip/dhcp/bootp
+      attr: file
+      value: pxelinux.0
+    - xpath: /network/a:options/a:option[@value='dhcp-option=option:ntp-server,{{ net_gw }}']
+    - xpath: /network/a:options/a:option[@value='address=/apps.{{ virt_net_domain }}/{{ net_gw }}']
+  xml:
+    path: "{{ gen_dir }}/{{ virt_net_name }}_net.xml"
+    xpath: "{{ item.xpath }}"
+    attribute: "{{ item.attr|default(omit) }}"
+    value: "{{ item.value|default(omit) }}"
+    namespaces:
+      a: http://libvirt.org/schemas/network/dnsmasq/1.0
+    pretty_print: true
+  loop: "{{ mod_list + reserve_ip_list }}"
+  register: result
+
+- name: "NETWORK: Destroy {{ virt_net_name }}"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: destroy
+
+- name: "NETWORK: Undefine {{ virt_net_name }}"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: undefine
+
+- name: "NETWORK: Define {{ virt_net_name }} from {{ gen_dir }}/{{ virt_net_name }}.xml"
+  vars:
+    filename: "{{ gen_dir }}/{{ virt_net_name }}.xml"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    xml: "{{ lookup( 'file', filename ) }}"
+    command: define
+
+- name: "NETWORK: Start {{ virt_net_name }}"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    command: create
+
+- name: "NETWORK: Enable {{ virt_net_name }} autostart"
+  virt_net:
+    name: "{{ virt_net_name }}"
+    autostart: True
+
+- name: "NETWORK: Restart libvirtd service"
+  service:
+    name: libvirtd
+    state: restarted

@@ -1,0 +1,70 @@
+- name: "SYSTEM: Update repository cache"
+  apt:
+    update_cache: yes
+
+- name: "SYSTEM: Upgrade all packages"
+  apt:
+    upgrade: full
+
+# install chrony, tftp, haproxy servers
+- name: "SYSTEM: Install packages"
+  apt:
+    name:
+    - tftpd-hpa
+    - haproxy
+    - chrony
+    - pxelinux
+    - syslinux
+    state: latest
+  
+- name: "PXELINUX: Populate tftp and pxelinux dir"
+  copy:
+    src: "{{ item }}"
+    dest: /srv/tftp
+    remote_src: yes
+  loop:
+    - /usr/lib/PXELINUX/
+    - /usr/lib/syslinux/modules/bios/
+  become: true
+
+- name: "PXELINUX: Configure pxelinux"
+  copy:
+    src: tftp/
+    dest: /srv/tftp
+  become: true
+
+- name: "PXELINUX: Set default menu"
+  template:
+    src: default.j2
+    dest: /srv/tftp/pxelinux.cfg/default
+  loop:
+    - name: master
+  become: true
+
+- name: "PXELINUX: Copy openshift nodes ignition over"
+  template:
+    src: default.j2
+    dest: /srv/tftp/pxelinux.cfg/01-{{ item.mac | regex_replace( ':', '-' ) }}
+  loop: "{{ node_list }}"
+  become: true
+
+- name: "HAPROXY: Configure haproxy"
+  template:
+    src: haproxy.j2
+    dest: /etc/haproxy/haproxy.cfg
+  become: true
+
+- name: "CHRONY: Configure chrony"
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+  become: true
+
+- name: "SYSTEM: Restart services"
+  service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+  - haproxy
+  - chrony
+  become: true

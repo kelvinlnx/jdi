@@ -2,5 +2,10 @@
 # defaults file for kelvinlnx.okd_setup
 virt_net_name: okd
 virt_net_domain: example.com
-gen_dir: ./generated
+master_nodes: 3                 # do not change, rhocp only supports 3
+ca_crt: "{{ gen_dir }}/private/myca.{{ virt_net_domain }}.crt"
 
+gen_dir: ./generated
+registry_name: myreg.{{ virt_net_domain }}
+registry_user_info: 'reguser:regpass'
+registry_user_email: user@{{ virt_net_domain }}
