@@ -8,4 +8,4 @@ makestep 1 3
 bindaddress {{ net_gw }}
 local stratum 8
 manual
-allow {{ net_gw | regex_search("^([0-9]{1,3}\.){3}.*","\\1") }}0/24
+allow {{ net_gw | regex_search("^(([0-9]{1,3}\\.){3}).*","\\1") }}0/24
