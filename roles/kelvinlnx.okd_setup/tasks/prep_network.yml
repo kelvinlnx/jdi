@@ -20,6 +20,7 @@
     path: /usr/local/etc/domains/{{ virt_net_domain }}
     line: "{{ item.ip }}\t{{ item.name }}"
   loop: "{{ node_list + tmp_list }}"
+  become: True
 
 
 # need to undefine network, define from xml and restart libvirtd
