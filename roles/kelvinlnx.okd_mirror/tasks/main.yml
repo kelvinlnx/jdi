@@ -142,6 +142,21 @@
   tags:
     - extract_installer
 
+- name: "SETUP: Prepare directory for openshift install files"
+  file:
+    path: /var/www/html/inst
+    mode: '0755'
+  become: True
+
+- name: "SETUP: Download rhcos images"
+  get_url:
+    url: "{{ item }}"
+    dest: /var/www/html/inst/{{ item | basename }}
+  loop:
+  - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-installer-kernel-x86_64
+  - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-installer-initramfs.x86_64.img
+  - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-metal.x86_64.raw.gz
+
 - name: "CLEANUP: remove the temporary file"
   file:
     path: "{{ item }}"

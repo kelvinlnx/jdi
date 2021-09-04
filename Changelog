@@ -1,6 +1,10 @@
 2021-09-04	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (rename variable)
 		- renamed a_result to net_xml due to dymanic var net_gw changing value when a_result changes.
+		- parameterised image location in default.j2 for pxe
+
+	* roles/kelvinlnx.okd_mirror (added function)
+		- download rhcos images into /var/www/html/inst
 
 2021-09-03	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (rewrite functions)

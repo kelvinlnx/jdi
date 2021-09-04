@@ -209,3 +209,4 @@
   - master.ign
   - worker.ign
   delegate_to: "{{ registry_name }}"
+  become: True
