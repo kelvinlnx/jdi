@@ -13,7 +13,7 @@ controlPlane:
   platform: {}
   replicas: {{ master_nodes }}
 metadata:
-  name: {{ virt_net_domain }}
+  name: {{ virt_net_name }}
 imageContentSources:
 - mirrors:
   - {{ registry_name }}:5000/ocp4/openshift4
