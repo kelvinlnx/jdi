@@ -31,6 +31,6 @@ networking:
 platform:
   none: {}
 sshKey: '{{ user_pub_key }}'
-additionalTrustBundle:
-  - "{{ lookup('file', ca_crt, errors='ignore') }}"
+additionalTrustBundle: |
+  {{ lookup('file', ca_crt, errors='ignore') | regex_replace('\n', '\n  ') }}
 pullSecret: '{"auths":{"{{ registry_name }}:5000":{"auth":"{{ registry_user_info | b64encode }}","email":"{{ registry_user_email }}"}}}'

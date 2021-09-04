@@ -2,7 +2,7 @@
   virt_net:
     name: "{{ virt_net_name }}"
     command: get_xml
-  register: a_result            # a_result used in vars/main.yml to generate data
+  register: net_xml            # a_result used in vars/main.yml to generate data
 
 - name: "NETWORK: Backup network defination to {{ virt_net_name }}.xml"
   copy:
