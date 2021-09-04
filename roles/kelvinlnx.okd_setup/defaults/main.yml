@@ -7,7 +7,7 @@ cluster_domain: example.com
 cluster_name: okd
 master_nodes: 3                 # do not change, rhocp only supports 3
 worker_nodes: 0
-registry_crt: "{{ gen_dir }}/private/myreg.{{ virt_net_domain }}.crt"
+registry_crt: "{{ gen_dir }}/private/myca.{{ virt_net_domain }}.crt"
 
 gen_dir: ./generated
 registry_name: myreg.{{ virt_net_domain }}
