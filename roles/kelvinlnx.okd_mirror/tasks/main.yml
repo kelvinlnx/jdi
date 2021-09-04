@@ -148,6 +148,11 @@
     mode: '0755'
   become: True
 
+- name: "SETUP: Check if file exists"
+  stat:
+    path: /var/www/html/inst/rhcos-metal.x86_64.raw.gz
+  register: b_result
+
 - name: "SETUP: Download rhcos images"
   get_url:
     url: "{{ item }}"
@@ -156,6 +161,7 @@
   - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-installer-kernel-x86_64
   - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-installer-initramfs.x86_64.img
   - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-metal.x86_64.raw.gz
+  when: not b_result.stat.exists
 
 - name: "CLEANUP: remove the temporary file"
   file:
