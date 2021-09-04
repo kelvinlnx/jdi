@@ -4,6 +4,7 @@
 		- parameterised image location in default.j2 for pxe
 		- update registry cert location for installer in defaults/main.yml and install-config.yaml.j2
 		- cleanup after install, remove reserved ip for bootstrap and entries in haproxy.cfg
+		- added cluster_domain and cluster_name variables
 
 	* roles/kelvinlnx.okd_mirror (added function)
 		- download rhcos images into /var/www/html/inst
