@@ -52,6 +52,7 @@
     - master0
     - master1
     - master2
+  become: True
 
 - name: Wait for bootstrap complete
   command: "{{ okd_installer }} wait-for bootstrap-complete --dir ./generated/openshift/{{ virt_net_domain }}"
@@ -70,6 +71,23 @@
     virsh undefine bootstrap
     rm /var/lib/libvirt/images/bootstrap.qcow2
   become: true
+
+- name: "CLEANUP: Remove ip reserved for bootstrap"
+  command: virsh net-update {{ virt_net_name }} delete ip-dhcp-host "<host mac='{{ node_list[0].mac }}' name='bootstrap' ip='{{ node_list[0].ip }}'/>" --live --config
+
+- name: "CLEANUP: Remove bootstrap from haproxy"
+  vars:
+    finished_installation: true
+  template:
+    src: haproxy.j2
+    dest: /etc/haproxy/haproxy.cfg
+  become: true
+
+- name: "CLEANUP: Restart haproxy"
+  service:
+    name: haproxy
+    state: restarted
+  become: True
 
 - name: Wait for install-complete
   command: "{{ okd_installer }} wait-for install-complete --dir ./generated/openshift/{{ virt_net_domain }}"

@@ -43,9 +43,15 @@ frontend k8s_api
 backend k8s_api_backend
 	balance roundrobin
 	mode tcp
-    {% for data in node_list %}
+    {%- for data in node_list -%}
+    {%- if finished_installation is defined -%}
+    {%- if data.name != 'bootstrap' -%}
 	server {{ data.name }} {{ data.ip }}:6443 check
-	{% endfor %}
+	{%- endif -%}
+	{%- else -%}
+	server {{ data.name }} {{ data.ip }}:6443 check
+	{%- endif -%}
+	{%- endfor -%}
 # ---------------------------------------------------------------------
 # round robin balancing for RHOCP Machine Config Server
 # ---------------------------------------------------------------------
@@ -56,9 +62,15 @@ frontend machine_config
 backend machine_config_backend
 	balance roundrobin
 	mode tcp
-    {% for data in node_list %}
+    {%- for data in node_list -%}
+    {%- if finished_installation is defined -%}
+    {%- if data.name != 'bootstrap' -%}
 	server {{ data.name }} {{ data.ip }}:22623 check
-	{% endfor %}
+	{%- endif -%}
+	{%- else -%}
+	server {{ data.name }} {{ data.ip }}:22623 check
+	{%- endif -%}
+	{%- endfor -%}
 # ---------------------------------------------------------------------
 # round robin balancing for RHOCP Ingress Insecure Port
 # ---------------------------------------------------------------------
@@ -69,9 +81,9 @@ frontend ingress_insecure
 backend ingress_insecure_backend
 	balance roundrobin
 	mode tcp
-    {% for data in node_list if not data.name == 'bootstrap' %}
+    {%- for data in node_list if not data.name == 'bootstrap' -%}
 	server {{ data.name }} {{ data.ip }}:80 check
-	{% endfor %}
+	{%- endfor -%}
 
 # ---------------------------------------------------------------------
 # round robin balancing for RHOCP Ingress Secure Port
@@ -83,9 +95,9 @@ frontend ingress_secure
 backend ingress_secure_backend
 	balance roundrobin
 	mode tcp
-    {% for data in node_list if not data.name == 'bootstrap' %}
+    {%- for data in node_list if not data.name == 'bootstrap' -%}
 	server {{ data.name }} {{ data.ip }}:443 check
-	{% endfor %}
+	{%- endfor -%}
 
 
 # ---------------------------------------------------------------------
