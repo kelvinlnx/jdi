@@ -6,7 +6,7 @@
 
 - name: "NETWORK: Backup network defination to {{ virt_net_name }}.xml"
   copy:
-    content: "{{ a_result.get_xml }}"
+    content: "{{ net_xml.get_xml }}"
     dest: "{{ gen_dir }}/{{ virt_net_name }}_net.xml"
 
 - name: "NETWORK: Add DNS names in /usr/local/etc/domains/{{ virt_net_domain }}"
