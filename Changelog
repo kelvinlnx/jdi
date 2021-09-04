@@ -2,6 +2,7 @@
 	* roles/kelvinlnx.okd_setup (rename variable)
 		- renamed a_result to net_xml due to dymanic var net_gw changing value when a_result changes.
 		- parameterised image location in default.j2 for pxe
+		- update registry cert location for installer in defaults/main.yml and install-config.yaml.j2
 
 	* roles/kelvinlnx.okd_mirror (added function)
 		- download rhcos images into /var/www/html/inst
