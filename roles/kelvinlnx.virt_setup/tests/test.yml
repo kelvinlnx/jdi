@@ -13,7 +13,8 @@
 - hosts: localhost
   roles:
     - { role: kelvinlnx.virt_setup }
-    - { role: kelvinlnx.virt_setup, virt_net_remove: True }
+#    - { role: kelvinlnx.virt_setup, virt_net_name: okd, virt_net_domain: example.com }
+#    - { role: kelvinlnx.virt_setup, virt_net_remove: True }
 
 #  tasks:
 #  - name: Create the okd network

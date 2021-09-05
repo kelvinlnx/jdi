@@ -1,6 +1,11 @@
 2021-09-05	Kelvin Lai
 	* roles/kelvinlnx.okd_mirror (params)
 		- increase flexibility by introducting parameters for registry name and port
+
+	* roles/kelvinlnx.virt_setup (config)
+		- set meaningful titles for tasks
+		- added additional examples in test/test.yml
+
 2021-09-04	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (update)
 		- renamed a_result to net_xml due to dymanic var net_gw changing value when a_result changes.

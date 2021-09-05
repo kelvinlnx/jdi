@@ -1,13 +1,13 @@
 # Status of destroy and undefine doesn't change even when done
 # Therefore the status settings
 - block:
-  - name: Destroy {{ virt_net_name }}
+  - name: "CONFIG: Destroy {{ virt_net_name }}"
     virt_net:
       name: "{{ virt_net_name }}"
       command: destroy
     changed_when: true
   
-  - name: Undefine {{ virt_net_name }}
+  - name: "CONFIG: Undefine {{ virt_net_name }}"
     virt_net:
       name: "{{ virt_net_name }}"
       command: undefine
@@ -17,7 +17,7 @@
     debug:
       msg: "{{ virt_net_name }} doesn't exists" 
 
-- name: Remove dns hosts file
+- name: "CONFIG: Remove dns hosts file"
   file:
     path: "{{ item }}"
     state: absent

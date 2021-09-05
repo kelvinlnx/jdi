@@ -1,16 +1,16 @@
-- name: get all libvirt network names
+- name: "INFO: Get all libvirt network names"
   virt_net:
     command: list_nets
   register: a_result
 
-- name: get network xml
+- name: "INFO: Get network xml"
   virt_net:
     name: "{{ item }}"
     command: get_xml
   loop: "{{ a_result.list_nets }}"
   register: b_result
 
-- name: set xml and network address facts
+- name: "FACTS: Set xml and network address facts"
   set_fact:
     net_xml: "{{ (b_result | json_query('results[*].get_xml')) | first }}"
     default_net_ip:
@@ -20,7 +20,7 @@
       | regex_search(\"ip.*address='([0-9\\.]*)'\",\"\\1\")
       | first }}"
 
-- name: set new network fact
+- name: "FACTS: Set new network fact"
   set_fact:
     new_net: >-
       {%- set ns = namespace(found=false) -%}
@@ -35,40 +35,40 @@
       {%- endif -%}
       {%- endfor -%}
 
-- name: define {{ virt_net_name }} network
+- name: "CONFIG: Define {{ virt_net_name }} network"
   virt_net:
     command: define
     name: "{{ virt_net_name }}"
     xml: '{{ lookup("template", "virt_net.xml.j2") }}'
   when: virt_net_name not in a_result.list_nets
 
-- name: configure systemd-resolve using NetworkManager dispatcher
+- name: "CONFIG: Configure systemd-resolve using NetworkManager dispatcher"
   template:
     src: 99-domain.sh.j2
     dest: /etc/NetworkManager/dispatcher.d/99-{{ virt_net_name }}.sh
     mode: '0755'
   become: true
     
-- name: create directory to hold dns records
+- name: "CONFIG: Create directory to hold dns records"
   file:
     path: /usr/local/etc/domains
     state: directory
     mode: '0755'
   become: true
     
-- name: Initialize the dns hosts file
+- name: "CONFIG: Initialize the dns hosts file"
   file:
     path: /usr/local/etc/domains/{{ virt_net_domain }}
     state: touch
     mode: '0644'
   become: true
     
-- name: make sure {{ virt_net_name }} is started
+- name: "CONFIG: Start {{ virt_net_name }} network"
   virt_net:
     name: "{{ virt_net_name }}"
     command: start
 
-- name: make sure {{ virt_net_name }} is autostart
+- name: "CONFIG: Set autostart for {{ virt_net_name }} network"
   virt_net:
     name: "{{ virt_net_name }}"
     autostart: true
