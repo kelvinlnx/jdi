@@ -6,6 +6,7 @@
 	* roles/kelvinlnx.okd_mirror (functions additon)
 		- increase flexibility by introducting parameters for registry name and port
 		- added ability to make use of pre downloaded files by the download_source.yml
+		- added ability to only install ca trusts if root_ca provided as role param
 
 	* roles/kelvinlnx.virt_setup (config)
 		- set meaningful titles for tasks

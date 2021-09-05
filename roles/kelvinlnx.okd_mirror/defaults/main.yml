@@ -5,7 +5,6 @@ cleanmeup: False          # remove temporary downloaded files
 
 tmp_ca: "{{ root_ca | default(omit) }}"
 my_pull_secret: "~/Downloads/pull-secret"
-okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 
 gen_dir: ./generated
 cert_dir: "{{ gen_dir }}/private"
@@ -44,3 +43,5 @@ release_name: 'ocp-release'                       # for okd, set to "okd"
 architecture: x86_64
 
 rhcos_release: 4.6.8                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
+
+okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
