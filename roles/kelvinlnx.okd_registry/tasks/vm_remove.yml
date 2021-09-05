@@ -1,7 +1,7 @@
 - name: "INIT: get facts"
   import_tasks: get_net_facts.yml
 
-- name: "NET: Remove reserved ip for myvm from {{ virt_net_name }}"
+- name: "NET: Remove reserved ip for {{ myvm.name }} from {{ virt_net_name }}"
   command: >-
     virsh net-update {{ virt_net_name }}
     delete ip-dhcp-host
