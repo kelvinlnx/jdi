@@ -3,4 +3,9 @@
   remote_user: root
   roles:
     - kelvinlnx.okd_mirror
+    # - role: kelvinlnx.okd_mirror
+    #   okd_client_tools: ~/Downloads/oc.tar.gz
+    #   ocp_release: 4.6.31
+    #   registry_name: myreg.tmp.example.com
+    #   registry_port: 5000
 #    - { role: kelvinlnx.okd_mirror, cleanmeup: True }

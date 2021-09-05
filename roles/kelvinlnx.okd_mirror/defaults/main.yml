@@ -12,7 +12,7 @@ cert_dir: "{{ gen_dir }}/private"
 
 tmp_host:
   name: myreg                           # name used by container
-  fqdn: myreg.tmp.example.com
+  fqdn: "{{ registry_name | default('myreg.tmp.example.com') }}"
   registry:
     username: reguser
     password: regpass
@@ -21,7 +21,7 @@ tmp_host:
     auth: /srv/registry/auth
     certs: /srv/registry/certs
     data: /srv/registry/data
-    port: 5000
+    port: "{{ registry_port | default('5000')}}"
 
 tmp_cert:
   fqdn: &reg_lname myreg.tmp.example.com
