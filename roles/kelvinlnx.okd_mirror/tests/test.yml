@@ -1,12 +1,21 @@
 ---
-- hosts: myreg.tmp.example.com
+- hosts: myreg.example.com
   remote_user: root
   roles:
-    - kelvinlnx.okd_mirror
+    # make sure your pull-secret is in ~/Downloads/pull-secret
+    # if root_ca is omited, no ca trusts will be configured
+    - { kelvinlnx.okd_mirror, root_ca: ./generated/private/myca.tmp.example.com }
+
     # - role: kelvinlnx.okd_mirror
-    #   okd_client_tools: ~/Downloads/oc.tar.gz
+    #   my_pull_secret: ~/Downloads/pull-secret
     #   ocp_release: 4.6.31
     #   rhcos_release: 4.6.8
-    #   registry_name: myreg.tmp.example.com
+    #   registry_name: myreg.example.com
     #   registry_port: 5000
+    #   root_ca: ./generated/private/myca.example.com.crt     # optional
+    #   tmp_cert:
+    #     fqdn: myreg.example.com
+    #     files:
+    #       key: ./generated/private/myreg.example.com.key
+    #       crt: ./generated/private/myreg.example.com.crt
 #    - { role: kelvinlnx.okd_mirror, cleanmeup: True }

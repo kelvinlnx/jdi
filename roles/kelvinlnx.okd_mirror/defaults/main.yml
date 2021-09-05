@@ -3,7 +3,7 @@
 
 cleanmeup: False          # remove temporary downloaded files
 
-tmp_ca: ./generated/private/myca.tmp.example.com.crt
+tmp_ca: "{{ root_ca | default(omit) }}"
 my_pull_secret: "~/Downloads/pull-secret"
 okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 

@@ -31,9 +31,11 @@
   copy:
     src: "{{ tmp_ca }}"
     dest: /usr/local/share/ca-certificates/
+  when: tmp_ca is defined
 
 - name: "PREREQ: Update ca trusts"
   command: update-ca-certificates
+  when: tmp_ca is defined
 
 - name: "PREREQ: Generate credentials"
   htpasswd:
