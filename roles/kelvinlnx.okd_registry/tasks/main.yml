@@ -1,5 +1,8 @@
 ---
 # tasks file for kelvinlnx.okd_registry
+- name: "PREREQ: Check prereq"
+  import_tasks: check_prereq.yml
+  
 - name: "VM: Create the virtual machine {{ myvm.name }}"
   include_tasks: vm_create.yml
   when: not virt_registry_remove | bool

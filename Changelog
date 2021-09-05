@@ -8,6 +8,9 @@
 		- set meaningful titles for tasks
 		- added additional examples in test/test.yml
 
+	* roles/kelvinlnx.okd_registry (feature)
+		- added prereq checking
+
 2021-09-04	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (update)
 		- renamed a_result to net_xml due to dymanic var net_gw changing value when a_result changes.

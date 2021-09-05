@@ -1,0 +1,19 @@
+- name: "PREREQ: Checking pubkey"
+  stat:
+    path: "{{ lookup('env', 'HOME') + '/.ssh/' + user_pubkey_filename }}"
+  register: a_result
+
+- name: "PREREQ: pubkey exist?"
+  assert:
+    msg: "Public Key doesn't exist. Change user_pubkey_filename or run ssh-keygen command, then retry."
+    that: a_result.stat.exists
+
+- name: "PREREQ: Checking prereq files"
+  stat:
+    path: "{{ os_iso }}"
+  register: a_result
+
+- name: "PREREQ: iso exists?"
+  assert:
+    msg: "{{ os_iso }} doesn't exits. Please provide the file, then retry."
+    that: a_result.stat.exists
