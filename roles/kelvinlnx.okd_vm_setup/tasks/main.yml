@@ -1,5 +1,5 @@
 ---
-# tasks file for kelvinlnx.okd_registry
+# tasks file for kelvinlnx.okd_vm_setup
 - name: "PREREQ: Check prereq"
   import_tasks: check_prereq.yml
   

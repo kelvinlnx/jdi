@@ -8,4 +8,4 @@
   vars:
     virt_registry_remove: False
   roles:
-    - kelvinlnx.okd_registry
+    - kelvinlnx.okd_vm_setup

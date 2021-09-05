@@ -7,9 +7,11 @@
 	* roles/kelvinlnx.virt_setup (config)
 		- set meaningful titles for tasks
 		- added additional examples in test/test.yml
+		- rename virt_setup to virt_net_setup
 
 	* roles/kelvinlnx.okd_registry (feature)
 		- added prereq checking
+		- renamed okd_registry to okd_vm_setup
 
 2021-09-04	Kelvin Lai
 	* roles/kelvinlnx.okd_setup (update)

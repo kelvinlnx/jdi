@@ -1,5 +1,5 @@
 ---
-# tasks file for kelvinlnx.okd_registry
+# tasks file for kelvinlnx.okd_vm_setup
 - name: "INIT: Create temp directory - {{ gen_dir }}/cidata"
   file:
     path: "{{ gen_dir }}/cidata"

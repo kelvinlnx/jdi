@@ -1,5 +1,5 @@
 ---
-# defaults file for kelvinlnx.okd_registry
+# defaults file for kelvinlnx.okd_vm_setup
 
 gen_dir: ./generated
 virt_registry_remove: False

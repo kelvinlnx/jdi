@@ -6,4 +6,4 @@
 - hosts: localhost
   # remote_user: root
   roles:
-    - { role: kelvinlnx.okd_registry, virt_net_domain: tmp.example.com, virt_registry_remove: False }
+    - { role: kelvinlnx.okd_vm_setup, virt_net_domain: tmp.example.com, virt_registry_remove: False }
