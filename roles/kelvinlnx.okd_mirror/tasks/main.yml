@@ -71,8 +71,8 @@
 #    privileged: No|yes
 
 - name: "SETUP: check for client tools"
-  stat:
-    path: /usr/local/bin/oc
+  command: which oc
+  failed_when: false
   register: oc_result
 
 - block:
@@ -100,7 +100,7 @@
         src: /tmp/oc.tar.gz
         dest: /usr/local/bin/
         remote_src: yes
-  when: not oc_result.stat.exists
+  when: oc_result.rc != 0
 
 - name: "SETUP: copy pull-secret"
   copy:
