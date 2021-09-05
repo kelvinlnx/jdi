@@ -6,6 +6,7 @@
     # - role: kelvinlnx.okd_mirror
     #   okd_client_tools: ~/Downloads/oc.tar.gz
     #   ocp_release: 4.6.31
+    #   rhcos_release: 4.6.8
     #   registry_name: myreg.tmp.example.com
     #   registry_port: 5000
 #    - { role: kelvinlnx.okd_mirror, cleanmeup: True }
