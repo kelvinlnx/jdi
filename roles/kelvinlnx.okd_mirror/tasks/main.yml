@@ -70,29 +70,37 @@
 #    oom_kill_disable: No|yes
 #    privileged: No|yes
 
-- name: "SETUP: check for client tools"
+- name: "SETUP: Check for oc command"
   command: which oc
   failed_when: false
   register: oc_result
 
 - block:
-    - name: "SETUP: check if oc.tar.gz exists"
+    - name: "SETUP: Check if oc.tar.gz exists in {{ gen_dir }}"
       stat:
-        path: /tmp/oc.tar.gz
+        path: "{{ gen_dir }}/oc.tar.gz"
       register: stat_result
+      delegate_to: localhost
 
-    - name: "SETUP: Wait for connectivity to {{ okd_client_tools | dirname }}"
-      uri:
-        url: "{{ okd_client_tools | dirname }}"
-      register: uri_result
-      until: uri_result.status == 200
-      retries: 720   # 1 hr
-      delay: 5
+    - name: "SETUP: Copy oc.tar.gz to server"
+      copy:
+        src: "{{ gen_dir }}/oc.tar.gz"
+        dest: /tmp
+      when: stat_result.stat.exists
 
-    - name: "SETUP: Download oc client tools"
-      get_url:
-        url: "{{ okd_client_tools }}"
-        dest: /tmp/oc.tar.gz
+    - block:
+      - name: "SETUP: Wait for connectivity to {{ okd_client_tools | dirname }}"
+        uri:
+          url: "{{ okd_client_tools | dirname }}"
+        register: uri_result
+        until: uri_result.status == 200
+        retries: 720   # 1 hr
+        delay: 5
+
+      - name: "SETUP: Download oc client tools"
+        get_url:
+          url: "{{ okd_client_tools }}"
+          dest: /tmp/oc.tar.gz
       when: not stat_result.stat.exists
 
     - name: "SETUP: Extract oc client tools"
@@ -150,23 +158,36 @@
     mode: '0755'
   become: True
 
-- name: "SETUP: Check if file exists"
+- name: "INFO: Check if images exists"
   stat:
-    path: /var/www/html/inst/rhcos-metal.x86_64.raw.gz
-  register: b_result
+    path: "{{ gen_dir }}/{{ item }}"
+  loop:
+  - "rhcos-installer-kernel-x86_64"
+  - "rhcos-installer-initramfs.x86_64.img"
+  - "rhcos-metal.x86_64.raw.gz"
+  register: stat_result
+  delegate_to: localhost
+
+- name: "SETUP: Copy {{ item.item }}"
+  copy:
+    src: "{{ gen_dir }}/{{ item.item }}"
+    dest: /var/www/html/inst/{{ item.item }}
+  when: item.stat.exists
+  loop: "{{ stat_result.results }}"
+  loop_control:
+    label: "{{ item.item }}"
 
 - name: "SETUP: Download rhcos images"
   vars:
     rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\.[0-9]{1,2}') }}"
     rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/{{ rhcos_release }}"
   get_url:
-    url: "{{ item }}"
+    url: "{{ rhcos_url }}/{{ item.item }}"
     dest: /var/www/html/inst/{{ item | basename }}
-  loop:
-  - "{{ rhcos_url }}/rhcos-installer-kernel-x86_64"
-  - "{{ rhcos_url }}/rhcos-installer-initramfs.x86_64.img"
-  - "{{ rhcos_url }}/rhcos-metal.x86_64.raw.gz"
-  when: not b_result.stat.exists
+  when: not item.stat.exists
+  loop: "{{ stat_result.results }}"
+  loop_control:
+    label: "{{ item.item }}"
 
 - name: "CLEANUP: remove the temporary file"
   file:
@@ -174,10 +195,10 @@
     state: absent
   when: cleanmeup
   loop:
-    - /tmp/oc_msg
-    - /tmp/oc.tar.gz
-    - /tmp/mirror_result
-    - /tmp/imageContentSources
-    - /tmp/pull-secret
+  - /tmp/oc_msg
+  - /tmp/oc.tar.gz
+  - /tmp/mirror_result
+  - /tmp/imageContentSources
+  - /tmp/pull-secret
   tags:
-    - cleanup
+  - cleanup

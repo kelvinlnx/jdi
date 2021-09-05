@@ -1,8 +1,11 @@
 2021-09-05	Kelvin Lai
 	Renamed virt_setup to more meaningful name virt_net_setup
+	* download_source.yml (playbook)
+		- optional playbook to help download images to generated directory.
 	
-	* roles/kelvinlnx.okd_mirror (params)
+	* roles/kelvinlnx.okd_mirror (functions additon)
 		- increase flexibility by introducting parameters for registry name and port
+		- added ability to make use of pre downloaded files by the download_source.yml
 
 	* roles/kelvinlnx.virt_setup (config)
 		- set meaningful titles for tasks
