@@ -133,14 +133,16 @@
     --to-release-image={{local_registry}}/{{local_repository}}:{{ocp_release}}-{{architecture}} 2> /tmp/oc_msg | tee /tmp/mirror_result
 
     sed -nE '/^imageContentSources:$/,/^$/s/(.*)/\1/p' /tmp/mirror_result > /tmp/imageContentSources
-  register: sh_result
-
 
 - name: "SETUP: Extract openshift-install"
   shell: oc adm release extract -a {{local_secret_json}} --command=openshift-install "{{local_registry}}/{{local_repository}}:{{ocp_release}}-{{architecture}}"
-  register: sh_result
   tags:
     - extract_installer
+
+- name: "SETUP: Retrieve the generated openshift-install command"
+  fetch:
+    src: openshift-installer
+    dest: "{{ gen_dir }}"
 
 - name: "SETUP: Prepare directory for openshift install files"
   file:
@@ -154,13 +156,16 @@
   register: b_result
 
 - name: "SETUP: Download rhcos images"
+  vars:
+    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\.[0-9]{1,2}') }}"
+    rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/{{ rhcos_release }}"
   get_url:
     url: "{{ item }}"
     dest: /var/www/html/inst/{{ item | basename }}
   loop:
-  - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-installer-kernel-x86_64
-  - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-installer-initramfs.x86_64.img
-  - https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-metal.x86_64.raw.gz
+  - "{{ rhcos_url }}/rhcos-installer-kernel-x86_64"
+  - "{{ rhcos_url }}/rhcos-installer-initramfs.x86_64.img"
+  - "{{ rhcos_url }}/rhcos-metal.x86_64.raw.gz"
   when: not b_result.stat.exists
 
 - name: "CLEANUP: remove the temporary file"
