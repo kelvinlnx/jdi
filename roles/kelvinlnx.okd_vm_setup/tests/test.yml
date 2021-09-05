@@ -9,3 +9,9 @@
     virt_registry_remove: False
   roles:
     - kelvinlnx.okd_vm_setup
+    # - role: kelvinlnx.okd_vm_setup
+    #   user_pubkey_filename: "id_rsa.pub"
+    #   os_iso: "/home/myuser/Downloads/ubuntu-20.04.3-live-server-amd64.iso"
+    #   virt_net_name: okd
+    #   virt_net_domain: example.com
+    # - { role: kelvinlnx.okd_vm_setup, virt_registry_remove: True }
