@@ -12,7 +12,7 @@ cert_dir: "{{ gen_dir }}/private"
 tmp_host:
   name: >-                                      # name used by container
     {%- if registry_name is defined -%}
-    {{ registry_name |  regex_search('([a-z]*)\.','\1') }}"
+    {{ registry_name |  regex_search('([a-z]*)\.','\1') }}
     {%- else -%}
     myreg
     {%- endif -%}
