@@ -19,7 +19,7 @@
 #   ignore_errors: true
 
 - block:
-  - name: "NET: Reserved ip for myvm(add)"
+  - name: "NET: Reserved ip for {{ myvm.name }}(add)"
     command: >-
       virsh net-update {{ virt_net_name }}
       add ip-dhcp-host
@@ -27,7 +27,7 @@
       --live --config
     become: true
   rescue:
-  - name: "NET: Reserved ip for myvm (modify)"
+  - name: "NET: Reserved ip for {{ myvm.name }}(modify)"
     command: >-
       virsh net-update {{ virt_net_name }}
       modify ip-dhcp-host
