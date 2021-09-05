@@ -56,7 +56,7 @@ autoinstall:
     allow-pw: true
     install-server: true
     authorized-keys: 
-      - "{{ myvm.authorized_key }}"
+      - "{{ authorized_key }}"
   storage:
     # layout:
     #   name: direct
@@ -96,7 +96,7 @@ autoinstall:
     timezone: Asia/Kuala_Lumpur
     disable_root: false
     ssh_authorized_keys: 
-      - "{{ myvm.authorized_key }}"
+      - "{{ authorized_key }}"
     package_update: true
     package_upgrade: true
     power_state:

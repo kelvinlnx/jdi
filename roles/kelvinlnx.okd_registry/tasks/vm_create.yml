@@ -51,6 +51,10 @@
     create: True
   become: true
 
+- name: "OKD: Get user public key"
+  set_fact:
+    authorized_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/' + user_pubkey_filename ) }}"
+
 - name: "VM: create autoinstall file - meta-data"
   file:
     path: "{{ gen_dir }}/cidata/meta-data"
