@@ -1,4 +1,6 @@
 2021-09-05	Kelvin Lai
+	Renamed virt_setup to more meaningful name virt_net_setup
+	
 	* roles/kelvinlnx.okd_mirror (params)
 		- increase flexibility by introducting parameters for registry name and port
 

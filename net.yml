@@ -12,6 +12,6 @@
 #
 - hosts: localhost
   roles:
-#    - { role: kelvinlnx.virt_setup, virt_net_remove: True, virt_net_domain: tmp.example.com }
-    - { role: kelvinlnx.virt_setup, virt_net_domain: tmp.example.com }
+#    - { role: kelvinlnx.virt_net_setup, virt_net_remove: True, virt_net_domain: tmp.example.com }
+    - { role: kelvinlnx.virt_net_setup, virt_net_domain: tmp.example.com }
 

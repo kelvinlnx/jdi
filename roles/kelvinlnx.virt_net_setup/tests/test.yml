@@ -12,17 +12,17 @@
 #
 - hosts: localhost
   roles:
-    - { role: kelvinlnx.virt_setup }
-#    - { role: kelvinlnx.virt_setup, virt_net_name: okd, virt_net_domain: example.com }
-#    - { role: kelvinlnx.virt_setup, virt_net_remove: True }
+    - { role: kelvinlnx.virt_net_setup }
+#    - { role: kelvinlnx.virt_net_setup, virt_net_name: okd, virt_net_domain: example.com }
+#    - { role: kelvinlnx.virt_net_setup, virt_net_remove: True }
 
 #  tasks:
 #  - name: Create the okd network
 #    include_role:
-#      name: kelvinlnx.virt_setup
+#      name: kelvinlnx.virt_net_setup
 #
 #  - name: Remove the okd network
 #    vars:
 #      virt_net_remove: True
 #    include_role:
-#      name: kelvinlnx.virt_setup
+#      name: kelvinlnx.virt_net_setup

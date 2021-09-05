@@ -1,5 +1,5 @@
 ---
-# tasks file for kelvinlnx.virt_setup
+# tasks file for kelvinlnx.virt_net_setup
 - name: "SYSTEM: Install python3-lxml package"
   apt:
     name: python3-lxml

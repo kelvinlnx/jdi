@@ -4,7 +4,7 @@
 gen_dir: ./generated
 virt_registry_remove: False
 
-# variable also used by virt_setup role
+# variable also used by virt_net_setup role
 virt_net_name: okd
 virt_net_domain: example.com
 
