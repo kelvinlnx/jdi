@@ -13,8 +13,8 @@
 - hosts: localhost
   roles:
     - { role: kelvinlnx.virt_net_setup }
-#    - role: kelvinlnx.virt_net_setup,
-#      virt_net_name: openshift,
+#    - role: kelvinlnx.virt_net_setup
+#      virt_net_name: openshift
 #      virt_net_domain: example.net
 #      dnsmasq_xtra_list:
 #      - xpath: /network/a:options/a:option[@value='server=/example.com/192.168.122.1']

@@ -5,6 +5,12 @@
 	* roles/kelvinlnx.okd_vm_setup/tasks/vm_create.yml  	(bugfig)
 		- remove recurse option for files
 
+	* roles/kelvinlnx.virt_net_setup	(functions)
+		- changed samples to use example.net
+		- added gen_dir
+		- added ability to add extra dnsmasq options, dnsmasq_xtra_list
+		- stop creating if network already exists
+
 2021-09-05	Kelvin Lai
 	Renamed virt_setup to more meaningful name virt_net_setup
 	* download_source.yml (playbook)
