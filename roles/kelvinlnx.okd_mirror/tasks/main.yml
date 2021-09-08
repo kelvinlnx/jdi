@@ -150,10 +150,10 @@
     - extract_installer
 
 - name: "SETUP: Retrieve the generated openshift-install command"
-  fetch:
+  synchronize:
     src: openshift-install
     dest: "{{ gen_dir }}"
-    flat: True
+    mode: pull
   become: True
 
 - name: "SETUP: Prepare directory for openshift install files"
