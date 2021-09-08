@@ -151,7 +151,7 @@
 
 - name: "SETUP: Retrieve the generated openshift-install command"
   fetch:
-    src: openshift-installer
+    src: openshift-install
     dest: "{{ gen_dir }}"
   become: True
 
