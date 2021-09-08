@@ -3,7 +3,7 @@
 #   False - Create the libvirt network, virt_net_name. Default.
 #   True  - Delete the libvirt network, virt_net_name.
 # virt_net_name:
-#   Name of the libvirt network. Default is example_net.
+#   Name of the libvirt network. Default is openshift.
 # virt_net_domain:
 #   The libvirt network domainname. Default is example.net
 #
@@ -13,7 +13,12 @@
 - hosts: localhost
   roles:
     - { role: kelvinlnx.virt_net_setup }
-#    - { role: kelvinlnx.virt_net_setup, virt_net_name: example_net, virt_net_domain: example.net }
+#    - role: kelvinlnx.virt_net_setup,
+#      virt_net_name: openshift,
+#      virt_net_domain: example.net
+#      dnsmasq_xtra_list:
+#      - xpath: /network/a:options/a:option[@value='server=/example.com/192.168.122.1']
+#      - xpath: /network/a:options/a:option[@value='rebind-domain-ok=example.com']
 #    - { role: kelvinlnx.virt_net_setup, virt_net_remove: True }
 
 #  tasks:

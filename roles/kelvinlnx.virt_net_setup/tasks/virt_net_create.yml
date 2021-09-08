@@ -3,6 +3,11 @@
     command: list_nets
   register: a_result
 
+- name: "ASSERT: network not already defined"
+  assert:
+    that: virt_net_name not in a_result.list_nets
+    msg: "{{ virt_net_name }} already defined, please remove first with virt_net_remove: True"
+
 - name: "INFO: Get network xml"
   virt_net:
     name: "{{ item }}"
@@ -35,11 +40,32 @@
       {%- endif -%}
       {%- endfor -%}
 
+- name: "CONFIG: Generate directory - {{ gen_dir }}"
+  file:
+    path: "{{ gen_dir }}"
+    state: directory
+
+- name: "CONFIG: Generate network xml template"
+  template:
+    src: virt_net.xml.j2
+    dest: "{{ gen_dir }}/{{ virt_net_name }}_inst.xml"
+
+- name: "CONFIG: Add custom dnsmasq attributes to network"
+  xml:
+    path: "{{ gen_dir }}/{{ virt_net_name }}_inst.xml"
+    xpath: "{{ item.xpath }}"
+    attribute: "{{ item.attribute|default(omit) }}"
+    value: "{{ item.value|default(omit) }}"
+    namespaces:
+      a: http://libvirt.org/schemas/network/dnsmasq/1.0
+    pretty_print: true
+  loop: "{{ dnsmasq_xtra_list }}"
+
 - name: "CONFIG: Define {{ virt_net_name }} network"
   virt_net:
     command: define
     name: "{{ virt_net_name }}"
-    xml: '{{ lookup("template", "virt_net.xml.j2") }}'
+    xml: "{{ lookup('file', gen_dir + '/' + virt_net_name + '_inst.xml') }}"
   when: virt_net_name not in a_result.list_nets
 
 - name: "CONFIG: Configure systemd-resolve using NetworkManager dispatcher"

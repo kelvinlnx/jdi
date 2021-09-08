@@ -1,5 +1,8 @@
 ---
 # defaults file for kelvinlnx.virt_net_setup
 virt_net_remove: False
-virt_net_name: example_net
+virt_net_name:   openshift
 virt_net_domain: example.net
+gen_dir:         ./generated
+
+dnsmasq_xtra_list: "{{[]}}"
