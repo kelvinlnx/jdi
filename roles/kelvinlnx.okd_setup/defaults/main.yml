@@ -1,15 +1,14 @@
 ---
 # defaults file for kelvinlnx.okd_setup
-okd_installer: ~/Downloads/openshift-install
-virt_net_name: okd              # libvirt network to install the cluster
-virt_net_domain: example.com    # domain name for the network
-cluster_domain: example.com
+okd_installer: "{{ gen_dir }}/openshift-install"
+virt_net_name:   example_net    # libvirt network to install the cluster
+virt_net_domain: example.net    # domain name for the network
 cluster_name: okd
 master_nodes: 3                 # do not change, rhocp only supports 3
 worker_nodes: 0
 registry_crt: "{{ gen_dir }}/private/myca.{{ virt_net_domain }}.crt"
 
 gen_dir: ./generated
-registry_name: myreg.{{ virt_net_domain }}
+registry_name: registry.{{ virt_net_domain }}
 registry_user_info: 'reguser:regpass'
-registry_user_email: user@{{ virt_net_domain }}
+registry_user_email: user@{{ registry_name }}

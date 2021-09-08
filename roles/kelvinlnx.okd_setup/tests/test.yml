@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - { role: kelvinlnx.okd_setup, virt_net_domain: tmp.example.com, registry_name: myreg.tmp.example.com }
+    - { role: kelvinlnx.okd_setup, virt_net_domain: example.net, registry_name: registry.example.net }
