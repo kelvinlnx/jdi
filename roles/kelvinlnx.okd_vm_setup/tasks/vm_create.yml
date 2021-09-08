@@ -4,7 +4,6 @@
   file:
     path: "{{ gen_dir }}/cidata"
     state: directory
-    recurse: yes
 
 - name: "INIT: get facts"
   import_tasks: get_net_facts.yml
@@ -39,7 +38,6 @@
   file:
     path: /usr/local/etc/domains
     state: directory
-    recurse: True
     mode: u=rwx,g=rx,o=rx
   become: true
 
