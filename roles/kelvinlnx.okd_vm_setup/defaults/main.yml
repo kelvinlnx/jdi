@@ -5,20 +5,22 @@ gen_dir: ./generated
 virt_registry_remove: False
 
 # variable also used by virt_net_setup role
-virt_net_name: okd
-virt_net_domain: example.com
+virt_net_name: openshift
+virt_net_domain: example.net
 
 # The location of the ubuntu iso
 os_iso: ~/Downloads/ubuntu-20.04.3-live-server-amd64.iso
 
+vm_name: registry
+
 myvm:
   host_ip: 88                             # only the host portion
-  name: myreg
-  fqdn: myreg.{{ virt_net_domain }}
+  name: "{{ vm_name }}"
+  fqdn: "{{ vm_name }}.{{ virt_net_domain }}"
   memory: 1024
   vcpu: 1
   disk:                                   # the following 3 lines used by create vm disk
-    path: /var/lib/libvirt/images/myreg.qcow2
+    path: /var/lib/libvirt/images/{{ vm_name }}.qcow2
     size: 25G                             # 4.6.31 repo uses approx 6GB
   username: user
   password: password

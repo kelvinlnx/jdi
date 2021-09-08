@@ -2,8 +2,9 @@
 	* old 	(directory)
 		- created directory, old and moved the original files here
 
-	* roles/kelvinlnx.okd_vm_setup/tasks/vm_create.yml  	(bugfig)
+	* roles/kelvinlnx.okd_vm_setup/tasks/vm_create.yml  	(functions)
 		- remove recurse option for files
+		- added param to set vm name
 
 	* roles/kelvinlnx.virt_net_setup	(functions)
 		- changed samples to use example.net
