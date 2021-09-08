@@ -153,6 +153,7 @@
   fetch:
     src: openshift-installer
     dest: "{{ gen_dir }}"
+  become: True
 
 - name: "SETUP: Prepare directory for openshift install files"
   file:
