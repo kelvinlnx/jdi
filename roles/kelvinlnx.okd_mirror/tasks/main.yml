@@ -12,14 +12,14 @@
     path: "{{ item }}"
     state: directory
   loop:
-    - "{{ tmp_host.registry.auth }}"
-    - "{{ tmp_host.registry.certs }}"
-    - "{{ tmp_host.registry.data }}"
+    - "{{ registry.auth }}"
+    - "{{ registry.certs }}"
+    - "{{ registry.data }}"
 
 - name: "PREREQ: Deploy certificates"
   copy:
     src: "{{ tmp_cert.files | json_query(item.name) }}"
-    dest: "{{ tmp_host.registry.certs }}"
+    dest: "{{ registry.certs }}"
     mode: "{{ item.mode }}"
   loop:
     - name: key
@@ -39,29 +39,29 @@
 
 - name: "PREREQ: Generate credentials"
   htpasswd:
-    name: "{{ tmp_host.registry.username }}"
-    password: "{{ tmp_host.registry.password }}"
+    name: "{{ registry.username }}"
+    password: "{{ registry.password }}"
     crypt_scheme: bcrypt
-    path: "{{ tmp_host.registry.auth }}/htpasswd"
+    path: "{{ registry.auth }}/htpasswd"
 
 - name: "SETUP: Create and run latest docker registry container"
   containers.podman.podman_container:
-    name: "{{ tmp_host.name }}"
+    name: "{{ local_registry | regex_search('[^\\.]*') }}"
     image: docker.io/library/registry:latest
     state: started
     force_restart: yes
     ports: 5000:5000/tcp
     volume:
-      - "{{ tmp_host.registry.data }}:/var/lib/registry"
-      - "{{ tmp_host.registry.auth }}:/auth"
-      - "{{ tmp_host.registry.certs }}:/certs"
+      - "{{ registry.data }}:/var/lib/registry"
+      - "{{ registry.auth }}:/auth"
+      - "{{ registry.certs }}:/certs"
     env:
       REGISTRY_AUTH: htpasswd
       REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
       REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
       REGISTRY_HTTP_TLS_CERTIFICATE: /certs/{{ tmp_cert.files.crt | basename }}
       REGISTRY_HTTP_TLS_KEY: /certs/{{ tmp_cert.files.key | basename }}
-      REGISTRY_HTTP_SECRET: "{{ tmp_host.registry.secret }}"
+      REGISTRY_HTTP_SECRET: "{{ registry.secret }}"
 
 #    publish[ed[_ports]]|ports: [<IP>:[<hostPort>]:]<containerPort>[/tcp|/udp]
 #    hostname:
@@ -120,7 +120,7 @@
 - name: "SETUP: Inject repo credentials into pull-secret"
   replace:
     path: /tmp/pull-secret
-    replace: '\1"{{ tmp_cert.fqdn }}:5000":{"auth":"{{ (tmp_host.registry.username + ":" + tmp_host.registry.password)|b64encode }}","email":"{{ tmp_host.registry.email }}"},\2'
+    replace: '\1"{{ local_registry }}":{"auth":"{{ (registry.username + ":" + registry.password)|b64encode }}","email":"{{ registry.email }}"},\2'
     regexp: '^({"auths":{)(.*)'
 
 - name: "INFO: Wait for response from https://quay.io/repository/openshift-release-dev/ocp-release?tab=tags"
@@ -181,7 +181,7 @@
 
 - name: "SETUP: Download rhcos images"
   vars:
-    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\.[0-9]{1,2}') }}"
+    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
     rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/{{ rhcos_release }}"
   get_url:
     url: "{{ rhcos_url }}/{{ item.item }}"

@@ -2,7 +2,7 @@
 # defaults file for kelvinlnx.gen_certs
 generate_ca: true
 
-cert_domain: tmp.example.com
+cert_domain: example.net
 
 gen_dir: ./generated
 cert_dir: "{{ gen_dir }}/private"
@@ -17,7 +17,7 @@ ca:
     country: SG
     state: Singapore
     locality: Singapore
-    org: EXAMPLE COM                                      # Organization
+    org: EXAMPLE NET                                      # Organization
     ou: IT                                                # Department
     cn: Boss
     emailAddress: owner@{{ tmp_ca_lname }}
@@ -25,7 +25,7 @@ ca:
   pass: "{{ ca_pass | default('MyCAPass') }}"             # replace the value MyCAPass if using own CA Cert
 
 clients:
-- name: &reg_sname myreg
+- name: &reg_sname registry
   fqdn: &reg_lname "{{ tmp_reg_sname }}.{{cert_domain}}"
   files:
     key: "{{ cert_dir }}/{{ tmp_reg_lname }}.key"

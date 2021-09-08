@@ -9,38 +9,28 @@ my_pull_secret: "~/Downloads/pull-secret"
 gen_dir: ./generated
 cert_dir: "{{ gen_dir }}/private"
 
-tmp_host:
-  name: >-                                      # name used by container
-    {%- if registry_name is defined -%}
-    {{ registry_name |  regex_search('([a-z]*)\.','\1') }}
-    {%- else -%}
-    myreg
-    {%- endif -%}
-  fqdn: "{{ registry_name | default('myreg.tmp.example.com') }}"
-  registry:
-    username: reguser
-    password: regpass
-    email: user@myreg.tmp.example.com
-    secret: SecretUsedByRegistry
-    auth: /srv/registry/auth
-    certs: /srv/registry/certs
-    data: /srv/registry/data
-    port: "{{ registry_port | default('5000')}}"
+local_registry: "registry.example.net:5000"
+
+registry:
+  username: reguser
+  password: regpass
+  email: user@{{ registry_name | .example.com
+  secret: SecretUsedByRegistry
+  auth: /srv/registry/auth
+  certs: /srv/registry/certs
+  data: /srv/registry/data
+  port: "{{ registry_port | default('5000')}}"
 
 tmp_cert:
-  fqdn: &reg_lname myreg.tmp.example.com
   files:
-    key: "{{ cert_dir }}/{{ tmp_reg_lname }}.key"
-    crt: "{{ cert_dir }}/{{ tmp_reg_lname }}.crt"
-
-tmp_reg_lname: *reg_lname
+    key: "{{ cert_dir }}/{{ local_registry | regex_search('[^:]*') }}.key"
+    crt: "{{ cert_dir }}/{{ local_registry | regex_search('[^:]*') }}.crt"
 
 
 # These are the registry mirroring informations needed. Refer to the
 # docs at https://docs.openshift.com/container-platform/4.6/installing/installing-mirroring-installation-images.html#installing-mirroring-installation-images
 # The listed defaults would work but it only mirrors OCP 4.6.310
 ocp_release: 4.6.31                 # Choose from https://access.redhat.com/downloads/content/290/
-local_registry: "{{ tmp_host.fqdn }}:{{ tmp_host.registry.port }}"
 local_repository: ocp4/openshift4
 product_repo: openshift-release-dev               # for okd, set to "openshift"
 local_secret_json: '/tmp/pull-secret'             # DO NOT CHANGE, value used in genrepo.yaml
