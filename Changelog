@@ -12,6 +12,9 @@
 		- added ability to add extra dnsmasq options, dnsmasq_xtra_list
 		- stop creating if network already exists
 
+	* roles/kelvinlnx.okd_setup/tasks/prep_network.yml 		(systemd-resolve)
+		- workaround to repopulate dns info in systemd-resolve
+
 2021-09-05	Kelvin Lai
 	Renamed virt_setup to more meaningful name virt_net_setup
 	* download_source.yml (playbook)

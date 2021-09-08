@@ -81,4 +81,8 @@
   service:
     name: libvirtd
     state: restarted
-  become: true
+  become: True
+
+- name: "NETWORK: Configure systemd-resolve"
+  command: systemd-resolve --interface {{ virt_net_name }} --set-dns {{ net_gw }} --set-domain ~{{ virt_net_domain }}
+  become: True
