@@ -153,12 +153,14 @@
   fetch:
     src: openshift-install
     dest: "{{ gen_dir }}"
+    flat: True
   become: True
 
 - name: "SETUP: Prepare directory for openshift install files"
   file:
     path: /var/www/html/inst
     mode: '0755'
+    state: directory
   become: True
 
 - name: "INFO: Check if images exists"
