@@ -14,7 +14,7 @@ local_registry: "registry.example.net:5000"
 registry:
   username: reguser
   password: regpass
-  email: user@{{ registry_name | .example.com
+  email: user@{{ local_registry | regex_search('[^:]*') }}
   secret: SecretUsedByRegistry
   auth: /srv/registry/auth
   certs: /srv/registry/certs
