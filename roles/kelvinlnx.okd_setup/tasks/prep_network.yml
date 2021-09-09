@@ -60,7 +60,7 @@
     name: "{{ virt_net_name }}"
     command: undefine
 
-- name: "NETWORK: Define {{ virt_net_name }} from {{ gen_dir }}/{{ virt_net_name }}.xml"
+- name: "NETWORK: Define {{ virt_net_name }} from {{ gen_dir }}/{{ virt_net_name }}_net.xml"
   vars:
     filename: "{{ gen_dir }}/{{ virt_net_name }}_net.xml"
   virt_net:
