@@ -37,6 +37,6 @@ local_secret_json: '/tmp/pull-secret'             # DO NOT CHANGE, value used in
 release_name: 'ocp-release'                       # for okd, set to "okd"
 architecture: x86_64
 
-rhcos_release: 4.6.8                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
+rhcos_release: 4.6.1                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
 
 okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
