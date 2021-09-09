@@ -13,7 +13,7 @@ controlPlane:
   platform: {}
   replicas: {{ master_nodes }}
 metadata:
-  name: {{ virt_net_domain | regex_search('[a-z_\-]*') }}
+  name: {{ virt_net_domain | regex_search('[a-z_\\-]*') }}
 imageContentSources:
 - mirrors:
   - {{ registry_name }}:5000/ocp4/openshift4
