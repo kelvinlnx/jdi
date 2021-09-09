@@ -39,6 +39,7 @@
     xpath: "{{ item.xpath }}"
     attribute: "{{ item.attribute|default(omit) }}"
     value: "{{ item.value|default(omit) }}"
+    add_children: "{{ item.add_children|default(omit) }}"
     namespaces:
       a: http://libvirt.org/schemas/network/dnsmasq/1.0
     pretty_print: true
