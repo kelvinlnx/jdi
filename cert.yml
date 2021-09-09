@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - { role: kelvinlnx.gen_certs, generate_ca: true }
+    # - role: kelvinlnx.gen_certs
+    #   generate_ca: True
+    #   cert_domain: example.net

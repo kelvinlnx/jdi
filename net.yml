@@ -3,15 +3,31 @@
 #   False - Create the libvirt network, virt_net_name. Default.
 #   True  - Delete the libvirt network, virt_net_name.
 # virt_net_name:
-#   Name of the libvirt network. Default is okd.
+#   Name of the libvirt network. Default is openshift.
 # virt_net_domain:
-#   The libvirt network domainname. Default is example.com
+#   The libvirt network domainname. Default is example.net
 #
 # Warning: If you use import_role instead of include_role make sure
 #          you explicitly set the virt_net_remove variable.
 #
 - hosts: localhost
   roles:
-#    - { role: kelvinlnx.virt_net_setup, virt_net_remove: True, virt_net_domain: tmp.example.com }
-    - { role: kelvinlnx.virt_net_setup, virt_net_domain: tmp.example.com }
+    - { role: kelvinlnx.virt_net_setup }
+#    - role: kelvinlnx.virt_net_setup
+#      virt_net_name: openshift
+#      virt_net_domain: example.net
+#      dnsmasq_xtra_list:
+#      - xpath: /network/a:options/a:option[@value='server=/example.com/192.168.122.1']
+#      - xpath: /network/a:options/a:option[@value='rebind-domain-ok=example.com']
+#    - { role: kelvinlnx.virt_net_setup, virt_net_remove: True }
 
+#  tasks:
+#  - name: Create the okd network
+#    include_role:
+#      name: kelvinlnx.virt_net_setup
+#
+#  - name: Remove the okd network
+#    vars:
+#      virt_net_remove: True
+#    include_role:
+#      name: kelvinlnx.virt_net_setup

@@ -17,8 +17,12 @@
 #      virt_net_name: openshift
 #      virt_net_domain: example.net
 #      dnsmasq_xtra_list:
-#      - xpath: /network/a:options/a:option[@value='server=/example.com/192.168.122.1']
-#      - xpath: /network/a:options/a:option[@value='rebind-domain-ok=example.com']
+#      - xpath: /network/dns/forwarder[@addr='1.1.1.1']
+#      - xpath: /network/dns/forwarder[@addr='192.168.122.1']
+#        attribute: 'domain'
+#        value: "{{ virt_net_domain }}"
+##      - xpath: /network/a:options/a:option[@value='server=/example.com/192.168.122.1']
+##      - xpath: /network/a:options/a:option[@value='rebind-domain-ok=example.com']
 #    - { role: kelvinlnx.virt_net_setup, virt_net_remove: True }
 
 #  tasks:

@@ -1,9 +1,0 @@
----
-#
-# If you need to make changes, just duplicate defaults/main.yml
-# into your project vars folder and include it in vars_files.
-#
-- hosts: localhost
-  # remote_user: root
-  roles:
-    - { role: kelvinlnx.okd_vm_setup, virt_net_domain: tmp.example.com, virt_registry_remove: False }

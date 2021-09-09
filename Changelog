@@ -1,3 +1,11 @@
+2021-09-09	Kelvin Lai
+	* roles/kelvinlnx.virt_net_setup	(simlify)
+		- backup virt_net.xml.j2 with bak extension
+		- simplify virt_net.xml.j2
+
+	* roles/kelvinlnx.okd_setup 		(simplify)
+		- simplify vars/main.yml
+
 2021-09-08	Kelvin Lai
 	* old 	(directory)
 		- created directory, old and moved the original files here

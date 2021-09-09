@@ -1,0 +1,31 @@
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
+  <name>{{ virt_net_name }}</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='{{ virt_net_name }}' stp='on' delay='0'/>
+  <domain name='{{ virt_net_domain }}' localOnly='yes'/>
+  <dns>
+    <txt name='example' value='{{ virt_net_name|upper }} Domain'/>
+  </dns>
+  <ip family='ipv4' address='{{ new_net + ".1" }}' prefix='24'>
+    <dhcp>
+      <range start='{{ new_net + ".2" }}' end='{{ new_net + ".254" }}'/>
+    </dhcp>
+  </ip>
+  <dnsmasq:options>
+    <dnsmasq:option value='server=1.1.1.1'/>
+    <dnsmasq:option value='no-poll'/>
+    <dnsmasq:option value='no-resolv'/>
+    <dnsmasq:option value='bogus-priv'/>
+    <dnsmasq:option value='dnssec'/>
+    <dnsmasq:option value='trust-anchor=.,19036,8,2,49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5'/>
+    <dnsmasq:option value='trust-anchor=.,20326,8,2,E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D'/>
+    <dnsmasq:option value='dns-loop-detect'/>
+    <dnsmasq:option value='stop-dns-rebind'/>
+    <dnsmasq:option value='rebind-localhost-ok'/>
+    <dnsmasq:option value='hostsdir=/usr/local/etc/domains'/>
+  </dnsmasq:options>
+</network>
