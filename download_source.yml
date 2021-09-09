@@ -3,7 +3,7 @@
   vars:
     gen_dir: ./generated
     rhcos_release: 4.6.8                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
-    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\.[0-9]{1,2}') }}"
+    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
     rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/{{ rhcos_release }}"
     prereq_list:
     - https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
