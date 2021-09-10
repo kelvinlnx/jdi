@@ -62,6 +62,7 @@ fi
 sudo -v
 
 if [[ "$*" == *"doit"* ]]; then
+  sudo apt update
   sudo apt install -y ansible virt-manager
   ansible-galaxy collection install containers.podman
 
@@ -114,8 +115,8 @@ else
   done
 fi
 
-$ADHOC_CMD -e @vars/all-vars playbooks/download_source.yml
-ansible_playbook -e install.yaml
+$ANSIBLE_CMD -e @vars/all-vars playbooks/download_source.yml
+$ANSIBLE_CMD -e install.yaml
 exit 0
 
 echo -e "\n\e[1;34mINIT: Updating ansible.cfg based on command line options"
