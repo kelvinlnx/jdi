@@ -39,11 +39,20 @@ reserve_ip_list: >-
             'value':     value.name }                                     -%}
   {%-   set _ = results.append(node_item)                                 -%}
   {%- endfor                                                              -%}
-  {%-   set node_item =
-          { 'xpath':     '/network/dns/host[@ip=\''+net_gw+'\']' }        -%}
-  {%-   set _ = results.append(node_item)                                 -%}
-  {%-   set node_item =
-          { 'xpath':     '/network/dns/host[@ip=\''+net_gw+'\']',
-            'add_children': [{'hostname': 'api'},{'hostname': 'api-int'}]} -%}
-  {%-   set _ = results.append(node_item)                                 -%}
-  {{ results }}
+  {{ results + api_list }}
+
+api_list:
+- xpath: "/network/dns/host[@ip='{{ net_gw }}']"
+- xpath: "/network/dns/host[@ip='{{ net_gw }}']"
+  set_children:
+  - hostname: 'api'
+  - hostname: 'api-int'
+
+
+# {%-   set node_item =
+#         { 'xpath':     '/network/dns/host[@ip=\''+net_gw+'\']' }        -%}
+# {%-   set _ = results.append(node_item)                                 -%}
+# {%-   set node_item =
+#         { 'xpath':     '/network/dns/host[@ip=\''+net_gw+'\']',
+#           'add_children': [{'hostname': 'api'},{'hostname': 'api-int'}]} -%}
+# {%-   set _ = results.append(node_item)                                 -%}

@@ -1,0 +1,166 @@
+#!/bin/bash
+# 
+# Simple script that automates the whole setup of an OpenShift Cluster
+# This file must be located in the project directory for it to work.
+#
+# Syntax:
+#     jdi [memory] [time] [nocertspb]
+#
+#     Where,
+#       memory - profile memory using cgroup
+#       time - profile tasks
+#       nocertspb - do not run the cert generate playbook
+#
+# Author:
+#     Kelvin Lai
+#
+
+function do_it {
+  $ANSIBLE_CMD $1
+
+  if [ $? -ne 0 ]; then
+    echo "\e[0m$1 playbook encountered problem!" >&2
+    exit 1
+  fi
+  echo -en "\e[0m"
+  
+}
+
+function check_app {
+  if ! `which $1 &> /dev/null`; then
+    echo "ERROR!!! $1 not installed" >&2
+    exit 1
+  fi
+}
+
+START_DIR=$PWD
+PROJECT_DIR=$(dirname $0)
+INSTALL_VM=true                 # you can only skip vm installation if it's already installed
+CALLBACK=""
+ANSIBLE_CMD=ansible-playbook
+ADHOC_CMD=ansible
+GALAXY_CMD=ansible-galaxy
+
+export ANSIBLE_CONFIG=$PROJECT_DIR/ansible.cfg
+
+# Make sure we are in the project directory
+cd $PROJECT_DIR
+
+if [[ "$*" == *"--help" ]]; then
+  echo "Usage: jdi [memory] [time] [showme]"
+  echo -e "  or:  jdi --help\n"
+  echo "Where,"
+  echo "  showme - just display, don't run."
+  echo "  memory - profile memory using cgroup"
+  echo "  time   - profile tasks"
+  echo -e "  --help - display this help\n\n"
+  echo "You may choose to skip installing the vm (Stage 1), if you have"
+  echo -e "previously installed it. Edit jdi and set INSTALL_VM=false\n\n"
+  exit 1
+fi
+
+sudo -v
+
+if [[ "$*" == *"doit"* ]]; then
+  sudo apt install -y ansible virt-manager
+  ansible-galaxy collection install containers.podman
+
+  [ -f ~/.ssh/id_rsa ] || ssh-keygen -qt rsa -f ~/.ssh/id_rsa -N ""
+
+  if `id | grep libvirt -q`; then
+    echo "verified user belongs to libvirt group"
+  else
+    WHOAMI=`whoami`
+    sudo usermod -aG libvirt $WHOAMI
+    echo group libvirt added to user $WHOAMI
+    echo Please logout, then login again and run this command
+    exit 1
+  fi
+else
+  check_app ansible
+fi
+
+
+# Setup initial environment
+###############################################################################
+if [[ "$*" == *"memory"* ]]; then
+  if [[ "$*" == *"time"* ]]; then
+    CALLBACK="cgroup_memory_recap,profile_tasks"
+  else
+    CALLBACK=cgroup_memory_recap
+  fi
+  check_app cgexec
+  ANSIBLE_CMD="cgexec -g memory:ansible_profile "$ANSIBLE_CMD
+  [ -d /sys/fs/cgroup/memory/ansible_profile ] || sudo cgcreate -a `id -un`:`id -gn` -t `id -un`:`id -gn` -g memory:ansible_profile
+elif [[ "$*" == *"time"* ]]; then
+  CALLBACK="profile_tasks"
+fi
+
+if [[ "$*" == *"showme"* ]]; then
+  ANSIBLE_CMD="echo -e \e[3;32m$ANSIBLE_CMD"
+  ADHOC_CMD="echo -e \e[3;32m$ADHOC_CMD"
+  GALAXY_CMD="echo -e \e[3;32m$GALAXY_CMD"
+else
+  echo "Make sure you have configure the files:"
+  echo "  - vars/all-vars  --> your settings"
+  echo "  - sage.yaml      --> update cloud-config"
+  echo "  - ansible.cfg    --> remote_user same as registry_vm.username in all-vars"
+  echo 
+  echo "Stop the program now if you haven't done so (Ctrl-C)"
+  echo -n "Installation will proceed in 10 seconds"
+  for CNT in `seq 9 -1 1`; do
+    sleep 1
+    echo -ne "\b\b\b\b\b\b\b\b\b\b $CNT seconds"
+  done
+fi
+
+$ADHOC_CMD -e @vars/all-vars playbooks/download_source.yml
+ansible_playbook -e install.yaml
+exit 0
+
+echo -e "\n\e[1;34mINIT: Updating ansible.cfg based on command line options"
+echo -e "========================================================\e[0m"
+$ADHOC_CMD localhost -om ini_file -e '@./vars/all-vars' -a "path=./ansible.cfg section=defaults option=remote_user value={{registry_vm.username}}"
+if [ -z "$CALLBACK" ]; then
+  $ADHOC_CMD localhost -om ini_file -a "path=./ansible.cfg section=defaults option=callback_whitelist state=absent"
+else
+  $ADHOC_CMD localhost -om ini_file -a "path=./ansible.cfg section=defaults option=callback_whitelist value=\"$CALLBACK\""
+fi
+echo -en "\e[0m"
+###############################################################################
+
+echo -e "\n\e[1;34mSTAGE 1: Install Utility VM"
+echo -e "===========================\e[0m"
+$INSTALL_VM && do_it sage.yaml || echo Skipping VM installation
+#######TODO UPDATE INVENTORY FILE
+
+echo -e "\n\e[1;34mSTAGE 2: Generate Certificates"
+echo -e "==============================\e[0m"
+# Step 2: Generate Certificates
+[[ "$*" == *"nocertspb"* ]] && echo nocertspb option used - skipping || do_it genkey.yaml
+
+echo -e "\n\e[1;34mSTAGE 3: Install ansible collection - containers.podman"
+echo -e "=======================================================\e[0m"
+[ -d  ~/.ansible/collections/ansible_collections/containers/podman ] && echo Already Installed || $GALAXY_CMD collection install containers.podman
+
+echo -e "\n\e[1;34mSTAGE 4: Create Registry and Mirror repository"
+echo -e "==============================================\e[0m"
+echo Waiting for VM to be reachable...
+$ADHOC_CMD localhost -e '@./generated/tmp_var' -m wait_for -a "host={{ registry_ip }} port=22 delay=10"
+echo
+do_it genrepo.yaml
+
+echo -e "\n\n
+Installation Complete
+=====================
+The playbooks doesn\'t do a cleanup of some files in registry server.
+This enables you to rerun the script and not waste time downloading
+some of the files like the oc.tar.gz.
+
+If you wish to remove these files from the server, run the following command:
+ansible-playbook genrepo.yaml --tags cleanup
+
+"
+
+cd $START_DIR
+exit 0

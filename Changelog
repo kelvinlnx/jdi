@@ -1,5 +1,8 @@
 2021-09-10	Kelvin Lai
 	Consolidated all roles & playbooks
+	* jdi
+	* install.yaml
+		- added meta: refresh_inventory
 	
 	* roles/kelvinlnx.okd_mirror	(simplify)
 		- removed rhcos_release, rhcos latest for the ocp version can be used.
