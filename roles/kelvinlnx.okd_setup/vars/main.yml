@@ -44,6 +44,6 @@ reserve_ip_list: >-
   {%-   set _ = results.append(node_item)                                 -%}
   {%-   set node_item =
           { 'xpath':     '/network/dns/host[@ip=\''+net_gw+'\']',
-            'add_children': [{'hostname': 'api'},{'hostname': 'api-int'}] -%}
+            'add_children': [{'hostname': 'api'},{'hostname': 'api-int'}]} -%}
   {%-   set _ = results.append(node_item)                                 -%}
   {{ results }}
