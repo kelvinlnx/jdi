@@ -12,9 +12,9 @@ virt_net_domain: example.net
 os_iso: ~/Downloads/ubuntu-20.04.3-live-server-amd64.iso
 
 vm_name: registry
+vm_ip: 2                                  # host portion of ip
 
 myvm:
-  host_ip: 88                             # only the host portion
   name: "{{ vm_name }}"
   fqdn: "{{ vm_name }}.{{ virt_net_domain }}"
   memory: 1024

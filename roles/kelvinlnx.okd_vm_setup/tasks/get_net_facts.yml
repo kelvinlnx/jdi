@@ -23,7 +23,7 @@
 - name: "INIT: Set registry ip facts"
   set_fact:
     reg_ip: >-
-      {{ reg_gw | regex_search("^([0-9]{1,3}\.){3}") }}{{ myvm.host_ip }}
+      {{ reg_gw | regex_search("^([0-9]{1,3}\.){3}") }}{{ vm_ip }}
 
 - name: "INIT: Set registry MAC facts"
   set_fact:

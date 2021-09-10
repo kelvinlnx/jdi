@@ -1,0 +1,21 @@
+- name: install with default
+  hosts: localhost
+  vars_files:
+  - vars/all-vars
+  tasks:
+  
+  - name: Setup network
+    import_role:
+      name: kelvinlnx.virt_net_setup
+  - name: Setup VM
+    import_role:
+      name: kelvinlnx.okd_vm_setup
+  - name: Generate Certs
+    import_role:
+      name: kelvinlnx.gen_certs
+  - name: Mirror OpenShift Registry
+    import_role:
+      name: kelvinlnx.okd_mirror
+  - name: Install Cluster
+    import_role:
+      name: kelvinlnx.okd_setup

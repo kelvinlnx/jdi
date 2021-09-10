@@ -137,7 +137,7 @@
 
 - name: "SETUP: Start repository mirroring"
   shell: |
-    oc adm release mirror -a {{local_secret_json}} \
+    oc adm release mirror -a /tmp/pull-secret \
     --from=quay.io/{{product_repo}}/{{release_name}}:{{ocp_release}}-{{architecture}} \
     --to={{local_registry}}/{{local_repository}} \
     --to-release-image={{local_registry}}/{{local_repository}}:{{ocp_release}}-{{architecture}} 2> /tmp/oc_msg | tee /tmp/mirror_result
@@ -145,7 +145,7 @@
     sed -nE '/^imageContentSources:$/,/^$/s/(.*)/\1/p' /tmp/mirror_result > /tmp/imageContentSources
 
 - name: "SETUP: Extract openshift-install"
-  shell: oc adm release extract -a {{local_secret_json}} --command=openshift-install "{{local_registry}}/{{local_repository}}:{{ocp_release}}-{{architecture}}"
+  shell: oc adm release extract -a /tmp/pull-secret --command=openshift-install "{{local_registry}}/{{local_repository}}:{{ocp_release}}-{{architecture}}"
   tags:
     - extract_installer
 
@@ -198,12 +198,9 @@
   file:
     path: "{{ item }}"
     state: absent
-  when: cleanmeup
   loop:
   - /tmp/oc_msg
   - /tmp/oc.tar.gz
   - /tmp/mirror_result
   - /tmp/imageContentSources
   - /tmp/pull-secret
-  tags:
-  - cleanup

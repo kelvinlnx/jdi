@@ -1,150 +1,151 @@
-#
-# IMPORTANT VARIABLES TO BE SET BY USER
-###############################################################################
+# GLOBAL VARIABLES
+# ==============================================================================
+# These variables are used by all playbooks/roles.
+gen_dir:         ./generated
+cert_dir: "{{ gen_dir }}/private"
 
-# Login to cloud.redhat.com and download your own pull secret.
-# https://cloud.redhat.com/openshift/install/pull-secret
+virt_net_name:   openshift
+virt_net_domain: example.net
+
+# Prereq files
+# ==============================================================================
+
+# The location of the ubuntu iso. Ok to accept the default unless you've
+# manually downloaded the files.
+os_iso: "{{ gen_dir }}/ubuntu-20.04.3-live-server-amd64.iso"
+
 my_pull_secret: "~/Downloads/pull-secret"
 
-# The ocp release version to mirror
-# https://access.redhat.com/downloads/content/290/
-ocp_release: 4.6.31
+okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 
-# The ocp client util
-ocp_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 
-# The location of the ubuntu iso
-os_iso: ~/Downloads/ubuntu-20.04.3-live-server-amd64.iso
+# NETWORK SETTINGS
+# ==============================================================================
+# virt_net_remove:
+#   False - Create libvirt network.
+#   True  - Delete libvirt network. To be used STANDALONE with net.yml playbook.
+virt_net_remove: False
 
-registry_vm:
-  name: &reg_sname "myreg"                              # you may change the name between ""
-  fqdn: &reg_lname "{{ tmp_reg_sname }}.example.com"    # you may change .example.com for domain
-  username: user                                        # user account on vm, make sure to update remote_user in ansible.cfg
-  password: "password"                                  # password for the user
-  authorized_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDEPmLw/RI0/S7FQh8o+JXFGqh3bTX24tigDyvLg0zCcGDdWgjU7lGq+TlYUbJ3W6SFzxXUXdl1iSssEY2iw1YvwySdQgAXfBd9Hn/k/INcKEErz/A7A2z2EDP9MQHv952lAs/Uik3tA+iFyjt5C1zkeRw0r2w/BRR2vFA7CHZEd9LP/KeX1Q2OUhUIrlnfsgN5us5jB0OtKX4JR3Pf5qaBSnySsojBGbaawrWUr9wqJH2LtkoOvIj8De/jJS6LK8tBH6FV+DY3OueBqdxOtvjFHy5l1PnlWWnIFVi3qhsXIVr46CGntvpSeod6rrQhLfQ/b191/zVqSMFKAL05HTfcr4aIUOw8A4fCigypm4NmfbSq+Mhm9o19k0Dr6Zihh2za54RwZdQOoc1qQYkc19BoPFtuh7wreh4YV6m5Ir7yVt9ApoK+Xj7fYrtkk2y4jBYYm8NP41VLABY6auwTk8X5n8Y8n3RWd/IuiCETSWPivV5es3MleuMBm8AWwQ1X9f0= dops@testdesktop
-  disk:
-    path: /var/lib/libvirt/images/{{ tmp_reg_sname }}.qcow2
-    size: 25G                                           # 4.6.31 repo uses approx 6GB
+# Extra dnsmasq options to add to network. See net.yml playbook for example.
+dnsmasq_xtra_list: "{{[]}}"
+
+# VM SETTINGS
+# ==============================================================================
+# virt_registry_remove:
+#   False - Install the VM (Used by openshift mirror registry).
+#   True  - Delete the VM. To be used STANDALONE with vm.yml playbook.
+virt_registry_remove: False
+
+vm_name: registry
+
+# Setup your identity as trusted user in VM. Used by ssh.
+# The file must be located in $(HOME)/.ssh/ directory
+user_pubkey_filename: "id_rsa.pub"
+
+myvm:
+  name: "{{ vm_name }}"
+  fqdn: "{{ vm_name }}.{{ virt_net_domain }}"
   memory: 1024
   vcpu: 1
-  host_ip: 88                                           # will be used for host section
-  registry:
-    username: testuser                                  # registry user
-    password: testpass                                  # registry users password
-    email: dops@myreg.example.com                       # email
-    secret: SecretUsedByRegistry                        # secret used by registry
-    port: 5000
+  disk:
+    path: /var/lib/libvirt/images/{{ vm_name }}.qcow2
+    size: 25G                             # 4.6.31 repo uses approx 6GB
+  username: user
+  password: password
 
-# Generate Root Certificate
-# If <generate_ca> is false, do the following:
-#   1. manually set the location of the key and crt files
-#   2. and optionally set the pass[phrase](if key requires one) or just uncomment
-#      the vars_prompt section in genkey.yaml to dynamically enter the passphrase
+# GENERATE CERTS SETTINGS
+# ==============================================================================
+# generate_ca:
+#   True  - Generate the CA
+#   False - You have to provide the key and crt files for the CA.
 generate_ca: true
 
-cert_list:
-  # CA Root Info
-  - type: "{{ CA_CERT }}"
-    name: &ca_sname mycomp                                # short hostname
-    fqdn: &ca_lname "{{ tmp_ca_sname }}.com"            # fully qualified domain name
-    files:
-      key: "{{ CERT_DIR }}/{{ tmp_ca_lname }}.key"      # location of CA private key
-      crt: "{{ CERT_DIR }}/{{ tmp_ca_lname }}.crt"      # location of CA certificate
-    subj:
-      country: SG
-      state: Singapore
-      locality: Singapore
-      org: EXAMPLE COM                                  # Organization
-      ou: IT                                            # Department
-      cn: Boss
-      emailAddress: owner@example.com
-    days: 3650
-    pass: "{{ ca_pass | default('MyCAPass') }}"       # replace the value MyCAPass if using own CA Cert
-                                                      # or just uncomment the vars_prompt section in genkey.yaml
+cert_domain: "{{ virt_net_domain }}"
 
-  # Registry Certificate Info
-  - type: "{{ REGISTRY_CERT }}"
-    name: "{{ tmp_reg_sname }}"
-    fqdn: "{{ tmp_reg_lname }}"
-    files:
-      key: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.key"
-      crt: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.crt"
-      csr: "{{ CERT_DIR }}/{{ tmp_reg_lname }}.csr"
-    subj:
-      country: MY
-      state: Kuala Lumpur
-      locality: KL
-      org: EXAMPLE.COM
-      ou: IT
-    days: 3650
+# IF USING OWN ROOT CERT
+# Uncomment ca_pass line and replace the ca.files with your own ca location.
+# ca_pass: KEY_IN_YOUR_PASS
 
-# These are the registry mirroring informations needed. Refer to the
-# docs at https://docs.openshift.com/container-platform/4.6/installing/installing-mirroring-installation-images.html#installing-mirroring-installation-images
-# The listed defaults would work but it only mirrors OCP 4.6.31
-OCP_RELEASE: "{{ ocp_release }}"          # Choose from https://access.redhat.com/downloads/content/290/
-LOCAL_REGISTRY: "{{ registry_vm.fqdn }}:{{ registry_vm.registry.port }}"
-LOCAL_REPOSITORY: ocp4/openshift4
-PRODUCT_REPO: openshift-release-dev               # for okd, set to "openshift"
-LOCAL_SECRET_JSON: '/tmp/pull-secret'             # DO NOT CHANGE, value used in genrepo.yaml
-RELEASE_NAME: 'ocp-release'                       # for okd, set to "okd"
-ARCHITECTURE: x86_64
-REMOVABLE_MEDIA_PATH: /path/to/removable_media    # only used if theres no internet access for registry. Refer to doc
+ca:
+  name: &ca_sname myca                                    # short hostname
+  fqdn: &ca_lname "{{ tmp_ca_sname }}.{{ cert_domain }}"  # fully qualified domain name
+  files:
+    key: "{{ cert_dir }}/{{ tmp_ca_lname }}.key"          # location of CA private key
+    crt: "{{ cert_dir }}/{{ tmp_ca_lname }}.crt"          # location of CA certificate
+  subj:
+    country: SG
+    state: Singapore
+    locality: Singapore
+    org: EXAMPLE NET                                      # Organization
+    ou: IT                                                # Department
+    cn: Boss
+    emailAddress: owner@{{ tmp_ca_lname }}
+  days: 3650
+  pass: "{{ ca_pass | default('MyCAPass') }}"             # replace the value MyCAPass if using own CA Cert
 
-# DO NOT NEED TO MODIFY ANYTHING BELOW THIS LINE
-# You can only change those directories if you want
-###############################################################################
+# This app can help you generate additional certs signed by the CA above.
+# Just add your own list with the name, fqdn, files and subj as below.
+clients:
+- name: &reg_sname registry
+  fqdn: &reg_lname "{{ tmp_reg_sname }}.{{cert_domain}}"
+  files:
+    key: "{{ cert_dir }}/{{ tmp_reg_lname }}.key"
+    crt: "{{ cert_dir }}/{{ tmp_reg_lname }}.crt"
+    csr: "{{ cert_dir }}/{{ tmp_reg_lname }}.csr"
+  subj:
+    country: MY
+    state: Kuala Lumpur
+    locality: KL
+    org: EXAMPLE.COM
+    ou: IT
+  days: 3650
+
+
 tmp_ca_sname: *ca_sname
 tmp_ca_lname: *ca_lname
 tmp_reg_sname: *reg_sname
 tmp_reg_lname: *reg_lname
 
 
-# Constants - PATHS
-GEN_DIR:         ./generated
-CERT_DIR:        "{{ GEN_DIR }}/private"
-OC_CLIENT_TOOLS: "{{ ocp_client_tools }}"
+# MIRROR SETTINGS
+# ==============================================================================
 
-# Constants - Host types used in playbooks
-POC_HOST:      poc_host
-REGISTRY_HOST: registry_host
-CA_CERT:       CA
-REGISTRY_CERT: registry
+root_ca: "{{ ca.files.crt }}"
 
+local_registry: "{{ vm_name }}.{{ virt_net_domain }}:5000"
 
-# ip, mac and gateway are all dynamically queried/generated during runtime
-host_list:
-  - name: poc
-    type: "{{ POC_HOST }}"
-    machine: q35
-    disk:
-      main: /var/lib/libvirt/images/poc-vda.qcow2
-      data: /var/lib/libvirt/images/poc-vdb.qcow2
-    ip: <GENERATED>
-    mac: <GENERATED>
+registry:
+  username: reguser
+  password: regpass
+  email: user@{{ local_registry | regex_search('[^:]*') }}
+  secret: SecretUsedByRegistry
+  auth: /srv/registry/auth
+  certs: /srv/registry/certs
+  data: /srv/registry/data
+  port: "{{ registry_port | default('5000')}}"
 
-  - name: "{{ registry_vm.name }}"
-    fqdn: "{{ registry_vm.fqdn }}"
-    type: "{{ REGISTRY_HOST }}"
-    username: "{{ registry_vm.username }}"
-    password: "{{ registry_vm.password }}"
-    authorized_key: "{{ registry_vm.authorized_key }}"
-    disk:
-      path: "{{ registry_vm.disk.path }}"
-      size: "{{ registry_vm.disk.size }}"
-    memory: "{{ registry_vm.memory }}"
-    vcpu: "{{ registry_vm.vcpu }}"
-    registry:
-      username: "{{ registry_vm.registry.username }}"
-      password: "{{ registry_vm.registry.password }}"
-      email: "{{ registry_vm.registry.email }}"
-      secret: "{{ registry_vm.registry.secret }}"
-      auth: /srv/registry/auth
-      certs: /srv/registry/certs
-      data: /srv/registry/data
-      port: "{{ registry_vm.registry.port }}"
-    host_ip: "{{ registry_vm.host_ip }}"
-    mac: <GENERATED>
-    gateway: <GENERATED>
-    #isvm: true|false
+tmp_cert:
+  files:
+    key: "{{ cert_dir }}/{{ local_registry | regex_search('[^:]*') }}.key"
+    crt: "{{ cert_dir }}/{{ local_registry | regex_search('[^:]*') }}.crt"
 
 
+# These are the registry mirroring informations needed. Refer to the
+# docs at https://docs.openshift.com/container-platform/4.6/installing/installing-mirroring-installation-images.html#installing-mirroring-installation-images
+# The listed defaults would work but it only mirrors OCP 4.6.310
+ocp_release: 4.6.31                 # Choose from https://access.redhat.com/downloads/content/290/
+local_repository: ocp4/openshift4
+product_repo: openshift-release-dev               # for okd, set to "openshift"
+release_name: 'ocp-release'                       # for okd, set to "okd"
+architecture: x86_64
+
+# CLUSTER SETTINGS
+# ==============================================================================
+master_nodes: 3                 # do not change, rhocp only supports 3
+worker_nodes: 0
+
+registry_crt: "{{ gen_dir }}/private/myca.{{ virt_net_domain }}.crt"
+
+registry_name: "{{ vm_name }}.{{ virt_net_domain }}"
+registry_user_info: "{{ registry.username }}:{{ registry.password }}"
+registry_user_email: "{{ registry.email }}"

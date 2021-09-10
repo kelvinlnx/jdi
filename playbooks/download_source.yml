@@ -7,8 +7,8 @@
     rhcos_base: "{{ ocp_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
     rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/latest"
     prereq_list:
-    - https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
-    - https://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso
+    - "{{ okd_client_tools | default('https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz') }}"
+    - "{{ os_iso | default('https://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso') }}"
     - "{{ rhcos_url }}/rhcos-installer-kernel-x86_64"
     - "{{ rhcos_url }}/rhcos-installer-initramfs.x86_64.img"
     - "{{ rhcos_url }}/rhcos-metal.x86_64.raw.gz"
