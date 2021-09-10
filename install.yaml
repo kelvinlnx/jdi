@@ -23,7 +23,7 @@
       remote_user: root
     import_role:
       name: kelvinlnx.okd_mirror
-    delegate_to: "{{ registry_host }}"
+    delegate_to: registry_host
 
   - name: Install Cluster
     import_role:
