@@ -2,9 +2,10 @@
   hosts: localhost
   vars:
     gen_dir: ./generated
-    rhcos_release: 4.6.1                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
-    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
-    rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/{{ rhcos_release }}"
+    ocp_release: 4.6.31
+    #rhcos_release: 4.6.1                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
+    rhcos_base: "{{ ocp_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
+    rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/latest"
     prereq_list:
     - https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
     - https://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso

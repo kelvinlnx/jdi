@@ -184,8 +184,8 @@
 
 - name: "SETUP: Download rhcos images"
   vars:
-    rhcos_base: "{{ rhcos_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
-    rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/{{ rhcos_release }}"
+    rhcos_base: "{{ ocp_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
+    rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/latest"
   get_url:
     url: "{{ rhcos_url }}/{{ item.item }}"
     dest: /var/www/html/inst/{{ item | basename }}

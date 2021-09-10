@@ -1,3 +1,7 @@
+2021-09-10	Kelvin Lai
+	* roles/kelvinlnx.okd_mirror	(simplify)
+		- removed rhcos_release, rhcos latest for the ocp version can be used.
+		
 2021-09-09	Kelvin Lai
 	* roles/kelvinlnx.virt_net_setup	(simlify)
 		- backup virt_net.xml.j2 with bak extension

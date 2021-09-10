@@ -9,7 +9,6 @@
     # - role: kelvinlnx.okd_mirror
     #   my_pull_secret: ~/Downloads/pull-secret
     #   ocp_release: 4.6.31
-    #   rhcos_release: 4.6.8
     #   registry_name: myreg.example.com
     #   registry_port: 5000
     #   root_ca: ./generated/private/myca.example.com.crt     # optional
