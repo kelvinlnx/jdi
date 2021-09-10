@@ -8,18 +8,29 @@
     rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/latest"
     prereq_list:
     - "{{ okd_client_tools | default('https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz') }}"
-    - "{{ os_iso | default('https://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso') }}"
     - "{{ rhcos_url }}/rhcos-installer-kernel-x86_64"
     - "{{ rhcos_url }}/rhcos-installer-initramfs.x86_64.img"
     - "{{ rhcos_url }}/rhcos-metal.x86_64.raw.gz"
   tasks:
+  - name: Check {{ os_iso }}
+    stat:
+      path: "{{ os_iso }}"
+    register: stat_result
+
+  - set_fact:
+      iso_name: https://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso
+    when: not stat_result.stat.exists
+
   - name: Create {{ gen_dir }} if it doesn't exists
     file:
       path: "{{ gen_dir }}"
       state: directory
       
   - name: Download files
+    vars:
+      tmp_list:
+      - "{{ iso_name | default(os_iso) }}"
     get_url:
       url: "{{ item }}"
       dest: "{{ gen_dir }}/{{ item | basename }}"
-    loop: "{{ prereq_list }}"
+    loop: "{{ prereq_list + tmp_list }}"
