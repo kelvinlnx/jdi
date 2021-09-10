@@ -23,7 +23,7 @@
 
   - name: Create {{ gen_dir }} if it doesn't exists
     file:
-      path: "{{ gen_dir }}"
+      path: "../{{ gen_dir }}"
       state: directory
       
   - name: Download files
@@ -32,5 +32,5 @@
       - "{{ iso_name | default(os_iso) }}"
     get_url:
       url: "{{ item }}"
-      dest: "{{ gen_dir }}/{{ item | basename }}"
+      dest: "../{{ gen_dir }}/{{ item | basename }}"
     loop: "{{ prereq_list + tmp_list }}"
