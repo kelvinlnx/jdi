@@ -16,7 +16,8 @@
     line: "{{ reg_ip }}\t{{ myvm.name }}"
     state: absent
   become: true
-
+  ignore_errors: true
+  
 - name: "VM: Turn off VM"
   virt:
     name: "{{ myvm.name }}"

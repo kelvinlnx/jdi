@@ -34,6 +34,23 @@
       --live --config
     become: true
 
+- block:
+  - name: "NET: Register DNS name"
+    command: >-
+      virsh net-update {{ virt_net_name }}
+      add dns-host
+      "<host ip='{{ reg_ip }}'><hostname>{{ myvm.name }}</hostname></host>"
+      --live --config
+    become: true
+  rescue:
+  - name: "NET: Register DNS name"
+    command: >-
+      virsh net-update {{ virt_net_name }}
+      modify dns-host
+      "<host ip='{{ reg_ip }}'><hostname>{{ myvm.name }}</hostname></host>"
+      --live --config
+    become: true
+
 - name: "NET: Check directory for dnsmasq hosts file"
   file:
     path: /usr/local/etc/domains

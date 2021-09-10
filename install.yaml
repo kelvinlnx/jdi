@@ -18,13 +18,17 @@
     import_role:
       name: kelvinlnx.gen_certs
 
+- name: run on registry
+  hosts: registry_host
+  remote_user: root
+  tasks:
   - name: Mirror OpenShift Registry
-    vars:
-      remote_user: root
     import_role:
       name: kelvinlnx.okd_mirror
-    delegate_to: registry_host
 
+- name: final cluster setup
+  hosts: localhost
+  tasks:
   - name: Install Cluster
     import_role:
       name: kelvinlnx.okd_setup

@@ -3,6 +3,7 @@
 	* jdi
 	* install.yaml
 		- added meta: refresh_inventory
+		- separate to multi play
 	
 	* roles/kelvinlnx.okd_mirror	(simplify)
 		- removed rhcos_release, rhcos latest for the ocp version can be used.
