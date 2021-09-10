@@ -116,7 +116,7 @@ else
 fi
 
 $ANSIBLE_CMD -e @vars/all-vars playbooks/download_source.yml
-$ANSIBLE_CMD -e install.yaml
+$ANSIBLE_CMD install.yaml
 exit 0
 
 echo -e "\n\e[1;34mINIT: Updating ansible.cfg based on command line options"
