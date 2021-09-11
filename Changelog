@@ -1,4 +1,11 @@
 2021-09-10	Kelvin Lai
+	* roles/kelvinlnx.okd_setup/tasks/prep_okd.yml 	(function)
+		- added parameters for repository name, version and arch
+
+	* roles/kelvinlnx.okd_setup/defaults/mail.yml 	(function)
+		- added parameters for repository name, version and arch
+
+2021-09-10	Kelvin Lai
 	Consolidated all roles & playbooks
 	* jdi
 	* install.yaml

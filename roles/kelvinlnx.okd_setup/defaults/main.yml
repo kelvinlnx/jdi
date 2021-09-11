@@ -4,6 +4,10 @@ okd_installer: "{{ gen_dir }}/openshift-install"
 virt_net_name:   openshift      # libvirt network to install the cluster
 virt_net_domain: example.net    # domain name for the network
 #cluster_name: okd
+ocp_release: 4.6.31
+local_repository: ocp4/openshift4
+architecture: x86_64
+
 master_nodes: 3                 # do not change, rhocp only supports 3
 worker_nodes: 0
 registry_crt: "{{ gen_dir }}/private/myca.{{ virt_net_domain }}.crt"

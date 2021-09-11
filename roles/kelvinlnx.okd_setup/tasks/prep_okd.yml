@@ -49,7 +49,7 @@
 #      " >> ./generated/openshift/poc/manifests/cvo-overrides.yaml
 - name: generate manifests and ignition files
   raw: |
-    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ registry_name }}:5000/ocp4/openshift4:4.6.31-x86_64
+    export OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE={{ registry_name }}:5000/{{ local_repository }}:{{ ocp_release }}-{{ architecture }}
     {{ okd_installer }} create manifests --dir ./generated/openshift/{{ virt_net_domain }}
     echo "  overrides:
       - group: config.openshift.io/v1
