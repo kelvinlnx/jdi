@@ -115,7 +115,7 @@ else
   done
 fi
 
-$ANSIBLE_CMD -e @vars/all-vars playbooks/download_source.yml
+$ANSIBLE_CMD -e @vars/all-vars download_source.yml
 $ANSIBLE_CMD install.yaml
 exit 0
 
