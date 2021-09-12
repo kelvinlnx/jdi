@@ -21,6 +21,8 @@
 - name: run on registry
   hosts: registry_host
   remote_user: root
+  vars_files:
+  - vars/all-vars
   tasks:
   - name: Mirror OpenShift Registry
     import_role:
@@ -28,6 +30,8 @@
 
 - name: final cluster setup
   hosts: localhost
+  vars_files:
+  - vars/all-vars
   tasks:
   - name: Install Cluster
     import_role:

@@ -3,20 +3,25 @@
 # These variables are used by all playbooks/roles.
 gen_dir:  ./generated
 cert_dir: "{{ gen_dir }}/private"
+os_iso: "{{ gen_dir }}/ubuntu-20.04.3-live-server-amd64.iso"
+my_pull_secret: "~/Downloads/pull-secret"
+okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 
 virt_net_name:   openshift
 virt_net_domain: example.net
+
+ocp_release: 4.7.28                 # Choose from https://access.redhat.com/downloads/content/290/
+rhcos_kernel: rhcos-live-kernel-x86_64
+rhcos_initrd: rhcos-live-initramfs.x86_64.img
+rhcos_img: rhcos-live-rootfs.x86_64.img
+rhcos_pxeconfig: coreos.live.rootfs_url=http://{{ registry_name }}/inst/{{ rhcos_img }} coreos.inst.install_dev=vda
 
 # Prereq files
 # ==============================================================================
 
 # The location of the ubuntu iso. Ok to accept the default unless you've
 # manually downloaded the files.
-os_iso: "{{ gen_dir }}/ubuntu-20.04.3-live-server-amd64.iso"
 
-my_pull_secret: "~/Downloads/pull-secret"
-
-okd_client_tools: https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
 
 
 # NETWORK SETTINGS
@@ -133,7 +138,6 @@ tmp_cert:
 # These are the registry mirroring informations needed. Refer to the
 # docs at https://docs.openshift.com/container-platform/4.6/installing/installing-mirroring-installation-images.html#installing-mirroring-installation-images
 # The listed defaults would work but it only mirrors OCP 4.6.310
-ocp_release: 4.6.31                 # Choose from https://access.redhat.com/downloads/content/290/
 local_repository: ocp4/openshift4
 product_repo: openshift-release-dev               # for okd, set to "openshift"
 release_name: 'ocp-release'                       # for okd, set to "okd"
@@ -150,7 +154,3 @@ registry_name: "{{ vm_name }}.{{ virt_net_domain }}"
 registry_user_info: "{{ registry.username }}:{{ registry.password }}"
 registry_user_email: "{{ registry.email }}"
 
-rhcos_kernel: rhcos-installer-kernel-x86_64
-rhcos_initrd: rhcos-installer-initramfs.x86_64.img
-rhcos_img: rhcos-metal.x86_64.raw.gz
-rhcos_pxeconfig: coreos.inst=yes coreos.inst.image_url=http://{{ registry_name }}/inst/{{ rhcos_img }} rd.neednet=1 coreos.inst.install_dev=vda ip=dhcp

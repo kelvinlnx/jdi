@@ -1,4 +1,8 @@
-2021-09-10	Kelvin Lai
+2021-09-12	Kelvin Lai
+	* roles/kelvinlnx.{okd_mirror,setup}	(flexible)
+		- addad param for rhcos kernel, initrd and img
+
+2021-09-11	Kelvin Lai
 	* roles/kelvinlnx.okd_setup/tasks/prep_okd.yml 	(function)
 		- added parameters for repository name, version and arch
 

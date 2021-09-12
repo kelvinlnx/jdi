@@ -7,6 +7,10 @@ virt_net_domain: example.net    # domain name for the network
 ocp_release: 4.6.31
 local_repository: ocp4/openshift4
 architecture: x86_64
+rhcos_kernel: rhcos-installer-kernel-x86_64
+rhcos_initrd: rhcos-installer-initramfs.x86_64.img
+rhcos_img: rhcos-metal.x86_64.raw.gz
+rhcos_pxeconfig: coreos.inst=yes coreos.inst.image_url=http://{{ registry_name }}/inst/{{ rhcos_img }} rd.neednet=1 coreos.inst.install_dev=vda ip=dhcp
 
 master_nodes: 3                 # do not change, rhocp only supports 3
 worker_nodes: 0

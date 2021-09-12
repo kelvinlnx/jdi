@@ -6,11 +6,14 @@
     #rhcos_release: 4.6.1                # refer to https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/
     rhcos_base: "{{ ocp_release | regex_search('[0-9]{1,2}\\.[0-9]{1,2}') }}"
     rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_base }}/latest"
+    rhcos_kernel: rhcos-installer-kernel-x86_64
+    rhcos_initrd: rhcos-installer-initramfs.x86_64.img
+    rhcos_img: rhcos-metal.x86_64.raw.gz
     prereq_list:
     - "{{ okd_client_tools | default('https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz') }}"
-    - "{{ rhcos_url }}/rhcos-installer-kernel-x86_64"
-    - "{{ rhcos_url }}/rhcos-installer-initramfs.x86_64.img"
-    - "{{ rhcos_url }}/rhcos-metal.x86_64.raw.gz"
+    - "{{ rhcos_url }}/{{ rhcos_kernel }}"
+    - "{{ rhcos_url }}/{{ rhcos_initrd }}"
+    - "{{ rhcos_url }}/{{ rhcos_img }}"
   tasks:
   - name: Check {{ os_iso }}
     stat:
@@ -23,7 +26,7 @@
 
   - name: Create {{ gen_dir }} if it doesn't exists
     file:
-      path: "../{{ gen_dir }}"
+      path: "{{ gen_dir }}"
       state: directory
       
   - name: Download files
@@ -32,5 +35,5 @@
       - "{{ iso_name | default(os_iso) }}"
     get_url:
       url: "{{ item }}"
-      dest: "../{{ gen_dir }}/{{ item | basename }}"
+      dest: "{{ gen_dir }}/{{ item | basename }}"
     loop: "{{ prereq_list + tmp_list }}"

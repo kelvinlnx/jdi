@@ -167,9 +167,9 @@
   stat:
     path: "{{ gen_dir }}/{{ item }}"
   loop:
-  - "rhcos-installer-kernel-x86_64"
-  - "rhcos-installer-initramfs.x86_64.img"
-  - "rhcos-metal.x86_64.raw.gz"
+  - "{{ rhcos_kernel }}"
+  - "{{ rhcos_initrd }}"
+  - "{{ rhcos_img }}"
   register: stat_result
   delegate_to: localhost
 

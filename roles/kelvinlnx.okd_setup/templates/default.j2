@@ -70,8 +70,8 @@ label bootstrap
   {% if item.name == 'bootstrap' %}
   menu default
   {% endif %}
-  kernel http://{{ registry_name }}/inst/rhcos-installer-kernel-x86_64
-  append initrd=http://{{ registry_name }}/inst/rhcos-installer-initramfs.x86_64.img rd.neednet=1 coreos.inst=yes coreos.inst.image_url=http://{{ registry_name }}/inst/rhcos-metal.x86_64.raw.gz coreos.inst.ignition_url=http://{{ registry_name }}/inst/bootstrap.ign.{{ virt_net_domain }} coreos.inst.install_dev=vda ip=dhcp
+  kernel http://{{ registry_name }}/inst/{{ rhcos_kernel }}
+  append initrd=http://{{ registry_name }}/inst/{{ rhcos_initrd }} {{ rhcos_pxeconfig }} coreos.inst.ignition_url=http://{{ registry_name }}/inst/bootstrap.ign.{{ virt_net_domain }}
 
 menu separator # insert an empty line
 
@@ -80,13 +80,13 @@ label check
   {% if 'master' in item.name %}
   menu default
   {% endif %}
-  kernel http://{{ registry_name }}/inst/rhcos-installer-kernel-x86_64
-  append initrd=http://{{ registry_name }}/inst/rhcos-installer-initramfs.x86_64.img rd.neednet=1 coreos.inst=yes coreos.inst.image_url=http://{{ registry_name }}/inst/rhcos-metal.x86_64.raw.gz coreos.inst.ignition_url=http://{{ registry_name }}/inst/master.ign.{{ virt_net_domain }} coreos.inst.install_dev=vda ip=dhcp
+  kernel http://{{ registry_name }}/inst/{{ rhcos_kernel }}
+  append initrd=http://{{ registry_name }}/inst/{{ rhcos_initrd }} {{ rhcos_pxeconfig }} coreos.inst.ignition_url=http://{{ registry_name }}/inst/master.ign.{{ virt_net_domain }}
 
 label check
   menu label Setup the ^Worker Nodes
   {% if 'worker' in item.name %}
   menu default
   {% endif %}
-  kernel http://{{ registry_name }}/inst/rhcos-installer-kernel-x86_64
-  append initrd=http://{{ registry_name }}/inst/rhcos-installer-initramfs.x86_64.img rd.neednet=1 coreos.inst=yes coreos.inst.image_url=http://{{ registry_name }}/inst/rhcos-metal.x86_64.raw.gz coreos.inst.ignition_url=http://{{ registry_name }}/inst/worker.ign.{{ virt_net_domain }} coreos.inst.install_dev=vda ip=dhcp
+  kernel http://{{ registry_name }}/inst/{{ rhcos_kernel }}
+  append initrd=http://{{ registry_name }}/inst/{{ rhcos_initrd }} {{ rhcos_pxeconfig }} coreos.inst.ignition_url=http://{{ registry_name }}/inst/worker.ign.{{ virt_net_domain }}
