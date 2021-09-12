@@ -15,7 +15,7 @@ node_list: >-
   {%-   set node_item=
         { 'name': 'master' + value|string,
     'ip': net_pt + (value+10)|string,
-    'mac': (net_pt + value|string) | hash('md5') |
+    'mac': (net_pt + (value+10)|string) | hash('md5') |
            regex_replace("^(..)(..)(..).*", "52:54:00:\\1:\\2:\\3") }     -%} 
   {%-   set _ = results.append(node_item)                                 -%}
   {%- endfor                                                              -%}
