@@ -1,0 +1,94 @@
+Downloads
+=========
+gen_dir:     ./generated
+pull_secret: "~/Downloads/pull-secret"
+os_iso:      "{{ gen_dir }}/ubuntu-20.04.3-live-server-amd64.iso"
+cert_dir:    "{{ gen_dir }}/private"
+oc_util:     https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+rhcos: ?????
+
+
+Machines
+========
+[masters]
+master0
+master1
+master2
+
+[workers]
+
+[okd_registry]
+registry
+
+[registry:vars]
+port: 5000
+user: reguser
+pass: regpass
+email: user@registry.example.net
+secret: SecretUsedByRegistry
+base_path: /srv/registry
+
+
+memory: 1024
+vcpu: 1
+disk:
+  path: /var/lib/libvirt/images/registry.qcow2
+  size: 25G
+user: user
+pass: password
+cert:
+  key: "{{ gen_dir }}/private/{{ inventory_hostname }}"
+  crt:
+  csr:
+  subj:
+    country: MY
+    state: Kuala Lumpur
+    locality: KL
+    org: EXAMPLE.NET
+    ou: IT
+  days: 3650
+
+Cluster
+=======
+ocp_release: 4.7.28
+cluster_name:
+rhcos_kernel: rhcos-live-kernel-x86_64
+rhcos_initrd: rhcos-live-initramfs.x86_64.img
+rhcos_img: rhcos-live-rootfs.x86_64.img
+rhcos_pxeconfig: coreos.live.rootfs_url=http://{{ registry_name }}/inst/{{ rhcos_img }} coreos.inst.install_dev=vda
+
+local_repository: ocp4/openshift4
+product_repo: openshift-release-dev
+release_name: 'ocp-release'
+architecture: x86_64
+
+
+
+
+Independent
+===========
+virt_net_name: openshift
+virt_net_domain: example.net
+
+
+Controls
+========
+virt_net_remove: False
+install_registry_vm: ?
+generate_ca: True
+ca:
+  fqdn: myca.example.net
+  files:
+    key: "{{ gen_dir }}/private/.key"
+    crt: "{{ gen_dir }}/private/.crt"
+  sub:
+    country: SG
+    state: Singapore
+    locality: Singapore
+    org: EXAMPLE.NET
+    ou: IT
+    cn: Boss
+    emailAddress: owner@myca.example.net
+  days: 3650
+
+
